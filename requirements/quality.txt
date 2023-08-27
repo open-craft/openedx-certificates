@@ -55,7 +55,9 @@ packaging==23.1
     #   black
     #   pytest
 pathspec==0.11.2
-    # via black
+    # via
+    #   black
+    #   yamllint
 pbr==5.11.1
     # via
     #   -r requirements/test.txt
@@ -87,6 +89,7 @@ pyyaml==6.0.1
     # via
     #   -r requirements/test.txt
     #   code-annotations
+    #   yamllint
 ruff==0.0.286
     # via -r requirements/quality.in
 sqlparse==0.4.4
@@ -112,3 +115,5 @@ typing-extensions==4.7.1
     #   -r requirements/test.txt
     #   asgiref
     #   black
+yamllint==1.32.0
+    # via -r requirements/quality.in

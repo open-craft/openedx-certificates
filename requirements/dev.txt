@@ -89,6 +89,7 @@ pathspec==0.11.2
     # via
     #   -r requirements/quality.txt
     #   black
+    #   yamllint
 pbr==5.11.1
     # via
     #   -r requirements/quality.txt
@@ -142,6 +143,7 @@ pyyaml==6.0.1
     #   -r requirements/quality.txt
     #   code-annotations
     #   edx-i18n-tools
+    #   yamllint
 ruff==0.0.286
     # via -r requirements/quality.txt
 six==1.16.0
@@ -192,6 +194,8 @@ wheel==0.41.2
     # via
     #   -r requirements/pip-tools.txt
     #   pip-tools
+yamllint==1.32.0
+    # via -r requirements/quality.txt
 
 # The following packages are considered to be unsafe in a requirements file:
 # pip

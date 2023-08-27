@@ -1,0 +1,22 @@
+extends: default
+
+ignore: |
+  .pytest_cache/
+  .ruff_cache/
+  .tox/
+  pii_report/
+  venv/
+rules:
+  indentation:
+    spaces: consistent
+    check-multi-line-strings: true
+  line-length: disable
+  document-start: disable
+  quoted-strings:
+    quote-type: any
+    required: only-when-needed
+  braces:
+    forbid: non-empty
+    level: warning
+  truthy:
+    check-keys: false

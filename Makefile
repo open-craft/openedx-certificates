@@ -63,8 +63,9 @@ piptools: ## install pinned version of pip-compile and pip-sync
 requirements: piptools ## install development environment requirements
 	pip-sync -q requirements/dev.txt requirements/private.*
 
-lint: ## lint all Python files
+lint: ## lint all files
 	black .
+	yamllint .
 
 test: clean ## run tests in the current virtualenv
 	pytest
