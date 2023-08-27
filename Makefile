@@ -72,10 +72,8 @@ test: clean ## run tests in the current virtualenv
 diff_cover: test ## find diff lines that need test coverage
 	diff-cover coverage.xml
 
-test-all: quality pii_check ## run tests on every supported Python/Django combination
-	tox
-	tox -e docs
-	tox -e package
+test-all: ## run all tests
+	tox --parallel
 
 validate: quality pii_check test ## run tests and quality checks
 

@@ -37,6 +37,7 @@ code-annotations==1.5.0
 coverage[toml]==7.3.0
     # via
     #   -r requirements/test.txt
+    #   django-coverage-plugin
     #   pytest-cov
 cryptography==41.0.3
     # via secretstorage
@@ -45,6 +46,8 @@ django==3.2.20
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/test.txt
     #   django-model-utils
+django-coverage-plugin==3.1.0
+    # via -r requirements/test.txt
 django-model-utils==4.3.1
     # via -r requirements/test.txt
 doc8==1.1.1
