@@ -6,3 +6,4 @@
 
 black                     # Code formatter
 ruff                      # Linter
+yamllint                  # A linter for YAML files.
