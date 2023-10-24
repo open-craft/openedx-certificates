@@ -1,5 +1,15 @@
 # Core requirements for using this application
 -c constraints.txt
 
-Django             # Web application framework
-django-model-utils        # Provides TimeStampedModel abstract base class
+django                  # Web application framework
+django-model-utils      # Provides TimeStampedModel abstract base class
+edx-opaque-keys         # Create and introspect Course and XBlock identities
+celery                  # Distributed task queue
+django-celery-beat      # Periodic task scheduler
+django_reverse_admin    # Provides reverse inlines in the admin interface
+djangorestframework     # RESTful API framework
+# TODO: Extract these to a plugin.
+pypdf                   # PDF manipulation library
+reportlab               # PDF generation library
+openedx-completion-aggregator # Completion aggregation service
+edx_ace                 # Messaging library
