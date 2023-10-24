@@ -2,7 +2,7 @@ openedx-certificates
 ####################
 
 |pypi-badge| |ci-badge| |codecov-badge| |doc-badge| |pyversions-badge|
-|license-badge| |status-badge|
+|license-badge| |status-badge| |visualization-badge|
 
 Purpose
 *******
@@ -114,3 +114,8 @@ Please do not report security issues in public. Please email security@openedx.or
 
 .. |status-badge| image:: https://img.shields.io/badge/Status-Experimental-yellow
     :alt: Status
+
+.. https://githubnext.com/projects/repo-visualization/
+.. |visualization-badge| image:: https://img.shields.io/badge/Repo%20Visualization-8A2BE2
+    :target: https://mango-dune-07a8b7110.1.azurestaticapps.net/?repo=open-craft/openedx-certificates
+    :alt: Visualization
