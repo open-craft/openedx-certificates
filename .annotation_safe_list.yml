@@ -19,6 +19,26 @@ auth.User:
   ".. pii_retirement": consumer_api
 contenttypes.ContentType:
   ".. no_pii:": This model has no PII
+completion.BlockCompletion:
+  ".. no_pii:": This model has no PII
+completion_aggregator.Aggregator:
+  ".. no_pii:": This model has no PII
+completion_aggregator.CacheGroupInvalidation:
+  ".. no_pii:": This model has no PII
+completion_aggregator.StaleCompletion:
+  ".. pii": This model contains a username; the entries are regularly cleaned up (usually every hour)
+django_celery_beat.ClockedSchedule:
+  ".. no_pii:": This model has no PII
+django_celery_beat.CrontabSchedule:
+  ".. no_pii:": This model has no PII
+django_celery_beat.IntervalSchedule:
+  ".. no_pii:": This model has no PII
+django_celery_beat.PeriodicTask:
+  ".. no_pii:": This model has no PII
+django_celery_beat.PeriodicTasks:
+  ".. no_pii:": This model has no PII
+django_celery_beat.SolarSchedule:
+  ".. no_pii:": This model has no PII
 sessions.Session:
   ".. no_pii:": This model has no PII
 social_django.Association:

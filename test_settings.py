@@ -30,8 +30,17 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.messages',
     'django.contrib.sessions',
+    'completion',
+    'completion_aggregator',
+    'django_celery_beat',
     'openedx_certificates',
+    'django_object_actions',
 )
+
+MIGRATION_MODULES = {
+    # the module 'third_party_app' is the one you want to skip
+    'completion_aggregator': None,
+}
 
 LOCALE_PATHS = [
     root(Path('openedx_certificates/conf/locale')),
@@ -59,3 +68,5 @@ TEMPLATES = [
         },
     },
 ]
+
+TESTING = True
