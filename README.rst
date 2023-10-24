@@ -1,12 +1,5 @@
 openedx-certificates
-#############################
-
-.. note::
-
-  This README was auto-generated. Maintainer: please review its contents and
-  update all relevant sections. Instructions to you are marked with
-  "PLACEHOLDER" or "TODO". Update or remove those sections, and remove this
-  note when you are done.
+####################
 
 |pypi-badge| |ci-badge| |codecov-badge| |doc-badge| |pyversions-badge|
 |license-badge| |status-badge|
@@ -16,91 +9,22 @@ Purpose
 
 A pluggable service for preparing Open edX certificates.
 
-TODO: The ``README.rst`` file should start with a brief description of the repository and its purpose.
-It should be described in the context of other repositories under the ``openedx``
-organization. It should make clear where this fits in to the overall Open edX
-codebase and should be oriented towards people who are new to the Open edX
-project.
+This is focused on the use cases of our client but designed to be a flexible foundation for any Open edX certificate
+needs. It natively supports generating PDF certificates, but can be extended to support other formats.
 
-Getting Started
-***************
+For the details about the purpose of this repository, please see the `the following ADR`_.
 
-Developing
-==========
+.. _the following ADR: https://openedx-certificates.readthedocs.io/en/latest/decisions/0001-purpose-of-this-repo.html
 
-One Time Setup
---------------
-.. code-block::
+Documentation
+*************
 
-  # Clone the repository
-  git clone git@github.com:open-craft/openedx-certificates.git
-  cd openedx-certificates
+Start by going through `the documentation`_.
 
-  # Set up a virtualenv with the same name as the repo and activate it
-  # Here's how you might do that if you have virtualenvwrapper setup.
-  mkvirtualenv -p python3.8 openedx-certificates
-
-
-Every time you develop something in this repo
----------------------------------------------
-.. code-block::
-
-  # Activate the virtualenv
-  # Here's how you might do that if you're using virtualenvwrapper.
-  workon openedx-certificates
-
-  # Grab the latest code
-  git checkout main
-  git pull
-
-  # Install/update the dev requirements
-  make requirements
-
-  # Run the tests and quality checks (to verify the status before you make any changes)
-  make validate
-
-  # Make a new branch for your changes
-  git checkout -b <your_github_username>/<short_description>
-
-  # Using your favorite editor, edit the code to make your change.
-  vim ...
-
-  # Run your new tests
-  pytest ./path/to/new/tests
-
-  # Run all the tests and quality checks
-  make validate
-
-  # Commit all your changes
-  git commit ...
-  git push
-
-  # Open a PR and ask for review.
-
-Deploying
-=========
-
-TODO: How can a new user go about deploying this component? Is it just a few
-commands? Is there a larger how-to that should be linked here?
-
-PLACEHOLDER: For details on how to deploy this component, see the `deployment how-to`_
-
-.. _deployment how-to: https://docs.openedx.org/projects/openedx-certificates/how-tos/how-to-deploy-this-component.html
+.. _the documentation: https://openedx-certificates.readthedocs.io/en/latest
 
 Getting Help
 ************
-
-Documentation
-=============
-
-PLACEHOLDER: Start by going through `the documentation`_.  If you need more help see below.
-
-.. _the documentation: https://docs.openedx.org/projects/openedx-certificates
-
-(TODO: `Set up documentation <https://openedx.atlassian.net/wiki/spaces/DOC/pages/21627535/Publish+Documentation+on+Read+the+Docs>`_)
-
-More Help
-=========
 
 If you're having trouble, we have discussion forums at
 https://discuss.openedx.org where you can connect with others in the
@@ -151,6 +75,8 @@ All community members are expected to follow the `Open edX Code of Conduct`_.
 People
 ******
 
+.. TODO: Add the maintainers.
+
 The assigned maintainers for this component and other project details may be
 found in `Backstage`_. Backstage pulls this data from the ``catalog-info.yaml``
 file in this repo.
@@ -175,7 +101,7 @@ Please do not report security issues in public. Please email security@openedx.or
     :alt: Codecov
 
 .. |doc-badge| image:: https://readthedocs.org/projects/openedx-certificates/badge/?version=latest
-    :target: https://docs.openedx.org/projects/openedx-certificates
+    :target: https://openedx-certificates.readthedocs.io/en/latest
     :alt: Documentation
 
 .. |pyversions-badge| image:: https://img.shields.io/pypi/pyversions/openedx-certificates.svg
