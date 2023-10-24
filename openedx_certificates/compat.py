@@ -16,8 +16,6 @@ if TYPE_CHECKING:  # pragma: no cover
     from django.contrib.auth.models import User
     from opaque_keys.edx.keys import CourseKey
 
-# TODO: Do we still need all these pylint disable comments? We switched to ruff.
-
 
 def get_celery_app() -> Celery:
     """Get Celery app to reuse configuration and queues."""
