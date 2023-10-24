@@ -19,6 +19,8 @@ __pycache__
 /.installed.cfg
 /lib
 /lib64
+/venv
+/.venv
 
 # Installer logs
 pip-log.txt
@@ -65,3 +67,6 @@ requirements/private.txt
 # IDEs
 .vscode/
 .idea/
+
+# Local certificates directory
+external_certificates/

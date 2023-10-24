@@ -66,3 +66,11 @@ Deploying
 *********
 
 TODO: Document this.
+
+Ansible Playbooks
+=================
+
+If you still use the `configuration`_ repository to deploy your Open edX instance, set
+``EDXAPP_ENABLE_CELERY_BEAT: true`` to enable the Celery beat service. Without this, periodic tasks will not be run.
+
+.. _configuration: https://github.com/openedx/configuration

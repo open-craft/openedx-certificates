@@ -13,4 +13,11 @@ class OpenedxCertificatesConfig(AppConfig):
     name = 'openedx_certificates'
 
     # https://edx.readthedocs.io/projects/edx-django-utils/en/latest/plugins/how_tos/how_to_create_a_plugin_app.html
-    plugin_app: ClassVar[dict[str, dict[str, dict]]] = {}
+    plugin_app: ClassVar[dict[str, dict[str, dict]]] = {
+        'settings_config': {
+            'lms.djangoapp': {
+                'common': {'relative_path': 'settings.common'},
+                'production': {'relative_path': 'settings.production'},
+            },
+        },
+    }

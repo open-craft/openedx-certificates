@@ -146,6 +146,11 @@ setup(
         include=['openedx_certificates', 'openedx_certificates.*'],
         exclude=["*tests"],
     ),
+    entry_points={
+        "lms.djangoapp": [
+            "openedx_certificates = openedx_certificates.apps:OpenedxCertificatesConfig",
+        ],
+    },
     include_package_data=True,
     install_requires=load_requirements(Path('requirements/base.in')),
     options={'bdist_wheel': {'universal': True}},
