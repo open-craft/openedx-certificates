@@ -16,10 +16,10 @@ Unreleased
 
 *
 
-0.1.0 – 2023-08-17
+0.1.0 – 2023-09-17
 **********************************************
 
 Added
 =====
 
-* First release on PyPI.
+* Initial implementation of the certificates app.
