@@ -17,6 +17,7 @@ class OpenedxCertificatesConfig(AppConfig):
         'settings_config': {
             'lms.djangoapp': {
                 'common': {'relative_path': 'settings.common'},
+                'production': {'relative_path': 'settings.production'},
             },
         },
     }
