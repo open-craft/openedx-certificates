@@ -118,7 +118,7 @@ edx-django-utils==5.8.0
     #   edx-drf-extensions
     #   edx-toggles
     #   event-tracking
-edx-drf-extensions==8.13.0
+edx-drf-extensions==8.13.1
     # via edx-completion
 edx-opaque-keys==2.5.1
     # via
@@ -159,7 +159,7 @@ pbr==6.0.0
     # via stevedore
 pillow==10.1.0
     # via reportlab
-prompt-toolkit==3.0.40
+prompt-toolkit==3.0.41
     # via click-repl
 psutil==5.9.6
     # via edx-django-utils
@@ -176,7 +176,7 @@ pymongo==3.13.0
     #   event-tracking
 pynacl==1.5.0
     # via edx-django-utils
-pypdf==3.17.0
+pypdf==3.17.1
     # via -r requirements/base.in
 python-crontab==3.0.0
     # via django-celery-beat
