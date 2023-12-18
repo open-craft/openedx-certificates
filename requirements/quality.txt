@@ -4,15 +4,23 @@
 #
 #    make upgrade
 #
+aiohttp==3.9.1
+    # via black
+aiosignal==1.3.1
+    # via aiohttp
 asgiref==3.7.2
     # via
     #   -r requirements/test.txt
     #   django
-astroid==2.15.6
+astroid==3.0.2
     # via
     #   pylint
     #   pylint-celery
-black==23.7.0
+async-timeout==4.0.3
+    # via aiohttp
+attrs==23.1.0
+    # via aiohttp
+black==23.12.0
     # via -r requirements/quality.in
 click==8.1.7
     # via
@@ -27,30 +35,37 @@ code-annotations==1.5.0
     # via
     #   -r requirements/test.txt
     #   edx-lint
-coverage[toml]==7.3.0
+coverage[toml]==7.3.3
     # via
     #   -r requirements/test.txt
+    #   coverage
     #   pytest-cov
 dill==0.3.7
     # via pylint
-django==3.2.20
+django==3.2.23
     # via
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/test.txt
     #   django-model-utils
 django-model-utils==4.3.1
     # via -r requirements/test.txt
-edx-lint==5.3.4
+edx-lint==5.3.6
     # via -r requirements/quality.in
-exceptiongroup==1.1.3
+exceptiongroup==1.2.0
     # via
     #   -r requirements/test.txt
     #   pytest
+frozenlist==1.4.1
+    # via
+    #   aiohttp
+    #   aiosignal
+idna==3.6
+    # via yarl
 iniconfig==2.0.0
     # via
     #   -r requirements/test.txt
     #   pytest
-isort==5.12.0
+isort==5.13.2
     # via
     #   -r requirements/quality.in
     #   pylint
@@ -58,40 +73,42 @@ jinja2==3.1.2
     # via
     #   -r requirements/test.txt
     #   code-annotations
-lazy-object-proxy==1.9.0
-    # via astroid
 markupsafe==2.1.3
     # via
     #   -r requirements/test.txt
     #   jinja2
 mccabe==0.7.0
     # via pylint
+multidict==6.0.4
+    # via
+    #   aiohttp
+    #   yarl
 mypy-extensions==1.0.0
     # via black
-packaging==23.1
+packaging==23.2
     # via
     #   -r requirements/test.txt
     #   black
     #   pytest
-pathspec==0.11.2
+pathspec==0.12.1
     # via black
-pbr==5.11.1
+pbr==6.0.0
     # via
     #   -r requirements/test.txt
     #   stevedore
-platformdirs==3.10.0
+platformdirs==4.1.0
     # via
     #   black
     #   pylint
-pluggy==1.2.0
+pluggy==1.3.0
     # via
     #   -r requirements/test.txt
     #   pytest
-pycodestyle==2.11.0
+pycodestyle==2.11.1
     # via -r requirements/quality.in
 pydocstyle==6.3.0
     # via -r requirements/quality.in
-pylint==2.17.5
+pylint==3.0.3
     # via
     #   edx-lint
     #   pylint-celery
@@ -99,26 +116,26 @@ pylint==2.17.5
     #   pylint-plugin-utils
 pylint-celery==0.3
     # via edx-lint
-pylint-django==2.5.3
+pylint-django==2.5.5
     # via edx-lint
 pylint-plugin-utils==0.8.2
     # via
     #   pylint-celery
     #   pylint-django
-pytest==7.4.0
+pytest==7.4.3
     # via
     #   -r requirements/test.txt
     #   pytest-cov
     #   pytest-django
 pytest-cov==4.1.0
     # via -r requirements/test.txt
-pytest-django==4.5.2
+pytest-django==4.7.0
     # via -r requirements/test.txt
 python-slugify==8.0.1
     # via
     #   -r requirements/test.txt
     #   code-annotations
-pytz==2023.3
+pytz==2023.3.post1
     # via
     #   -r requirements/test.txt
     #   django
@@ -126,7 +143,7 @@ pyyaml==6.0.1
     # via
     #   -r requirements/test.txt
     #   code-annotations
-ruff==0.0.285
+ruff==0.1.8
     # via -r requirements/quality.in
 six==1.16.0
     # via edx-lint
@@ -151,14 +168,14 @@ tomli==2.0.1
     #   coverage
     #   pylint
     #   pytest
-tomlkit==0.12.1
+tomlkit==0.12.3
     # via pylint
-typing-extensions==4.7.1
+typing-extensions==4.9.0
     # via
     #   -r requirements/test.txt
     #   asgiref
     #   astroid
     #   black
     #   pylint
-wrapt==1.15.0
-    # via astroid
+yarl==1.9.4
+    # via aiohttp
