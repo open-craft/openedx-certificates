@@ -16,7 +16,7 @@ asgiref==3.7.2
     # via
     #   -r requirements/test.txt
     #   django
-attrs==23.1.0
+attrs==23.2.0
     # via
     #   -r requirements/test.txt
     #   edx-ace
@@ -32,16 +32,16 @@ billiard==4.2.0
     # via
     #   -r requirements/test.txt
     #   celery
-black==23.11.0
+black==23.12.1
     # via -r requirements/quality.in
-celery==5.3.5
+celery==5.3.6
     # via
     #   -r requirements/test.txt
     #   django-celery-beat
     #   edx-celeryutils
     #   event-tracking
     #   openedx-completion-aggregator
-certifi==2023.7.22
+certifi==2023.11.17
     # via
     #   -r requirements/test.txt
     #   requests
@@ -50,6 +50,10 @@ cffi==1.16.0
     #   -r requirements/test.txt
     #   cryptography
     #   pynacl
+chardet==5.2.0
+    # via
+    #   -r requirements/test.txt
+    #   reportlab
 charset-normalizer==3.3.2
     # via
     #   -r requirements/test.txt
@@ -80,7 +84,7 @@ code-annotations==1.5.0
     # via
     #   -r requirements/test.txt
     #   edx-toggles
-coverage[toml]==7.3.2
+coverage[toml]==7.4.0
     # via
     #   -r requirements/test.txt
     #   coverage
@@ -90,7 +94,7 @@ cron-descriptor==1.4.0
     # via
     #   -r requirements/test.txt
     #   django-celery-beat
-cryptography==41.0.5
+cryptography==41.0.7
     # via
     #   -r requirements/test.txt
     #   pyjwt
@@ -136,11 +140,11 @@ django-object-actions==4.2.0
     # via -r requirements/test.txt
 django-reverse-admin==2.9.6
     # via -r requirements/test.txt
-django-timezone-field==6.0.1
+django-timezone-field==6.1.0
     # via
     #   -r requirements/test.txt
     #   django-celery-beat
-django-waffle==4.0.0
+django-waffle==4.1.0
     # via
     #   -r requirements/test.txt
     #   edx-django-utils
@@ -167,13 +171,13 @@ edx-completion==4.4.0
     # via
     #   -r requirements/test.txt
     #   openedx-completion-aggregator
-edx-django-utils==5.8.0
+edx-django-utils==5.9.0
     # via
     #   -r requirements/test.txt
     #   edx-drf-extensions
     #   edx-toggles
     #   event-tracking
-edx-drf-extensions==8.13.1
+edx-drf-extensions==9.1.2
     # via
     #   -r requirements/test.txt
     #   edx-completion
@@ -192,13 +196,13 @@ event-tracking==2.2.0
     # via
     #   -r requirements/test.txt
     #   edx-completion
-exceptiongroup==1.1.3
+exceptiongroup==1.2.0
     # via
     #   -r requirements/test.txt
     #   pytest
 factory-boy==3.3.0
     # via -r requirements/test.txt
-faker==20.0.3
+faker==22.1.0
     # via
     #   -r requirements/test.txt
     #   factory-boy
@@ -206,7 +210,7 @@ fs==2.4.16
     # via
     #   -r requirements/test.txt
     #   xblock
-idna==3.4
+idna==3.6
     # via
     #   -r requirements/test.txt
     #   requests
@@ -222,11 +226,11 @@ jsonfield==3.1.0
     # via
     #   -r requirements/test.txt
     #   edx-celeryutils
-kombu==5.3.3
+kombu==5.3.4
     # via
     #   -r requirements/test.txt
     #   celery
-lxml==4.9.3
+lxml==5.1.0
     # via
     #   -r requirements/test.txt
     #   xblock
@@ -242,7 +246,7 @@ markupsafe==2.1.3
     #   xblock
 mypy-extensions==1.0.0
     # via black
-newrelic==9.1.2
+newrelic==9.4.0
     # via
     #   -r requirements/test.txt
     #   edx-django-utils
@@ -253,7 +257,7 @@ packaging==23.2
     #   -r requirements/test.txt
     #   black
     #   pytest
-pathspec==0.11.2
+pathspec==0.12.1
     # via
     #   black
     #   yamllint
@@ -261,24 +265,23 @@ pbr==6.0.0
     # via
     #   -r requirements/test.txt
     #   stevedore
-pillow==10.1.0
+pillow==10.2.0
     # via
     #   -r requirements/test.txt
     #   reportlab
 platformdirs==3.11.0
     # via
-    #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -c requirements/constraints.txt
     #   black
 pluggy==1.3.0
     # via
     #   -r requirements/test.txt
     #   pytest
-prompt-toolkit==3.0.41
+prompt-toolkit==3.0.43
     # via
     #   -r requirements/test.txt
     #   click-repl
-psutil==5.9.6
+psutil==5.9.7
     # via
     #   -r requirements/test.txt
     #   edx-django-utils
@@ -301,9 +304,9 @@ pynacl==1.5.0
     # via
     #   -r requirements/test.txt
     #   edx-django-utils
-pypdf==3.17.1
+pypdf==3.17.4
     # via -r requirements/test.txt
-pytest==7.4.3
+pytest==7.4.4
     # via
     #   -r requirements/test.txt
     #   pytest-cov
@@ -342,14 +345,14 @@ pyyaml==6.0.1
     #   code-annotations
     #   xblock
     #   yamllint
-reportlab==4.0.7
+reportlab==4.0.9
     # via -r requirements/test.txt
 requests==2.31.0
     # via
     #   -r requirements/test.txt
     #   edx-drf-extensions
     #   sailthru-client
-ruff==0.1.5
+ruff==0.1.11
     # via -r requirements/quality.in
 sailthru-client==2.2.3
     # via
@@ -394,7 +397,7 @@ tomli==2.0.1
     #   black
     #   coverage
     #   pytest
-typing-extensions==4.8.0
+typing-extensions==4.9.0
     # via
     #   -r requirements/test.txt
     #   asgiref
@@ -403,7 +406,7 @@ typing-extensions==4.8.0
     #   faker
     #   kombu
     #   pypdf
-tzdata==2023.3
+tzdata==2023.4
     # via
     #   -r requirements/test.txt
     #   backports-zoneinfo
@@ -419,7 +422,7 @@ vine==5.1.0
     #   amqp
     #   celery
     #   kombu
-wcwidth==0.2.10
+wcwidth==0.2.13
     # via
     #   -r requirements/test.txt
     #   prompt-toolkit
@@ -431,7 +434,7 @@ webob==1.8.7
     # via
     #   -r requirements/test.txt
     #   xblock
-xblock==1.8.1
+xblock==1.9.1
     # via
     #   -r requirements/test.txt
     #   edx-completion
