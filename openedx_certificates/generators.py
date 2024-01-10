@@ -115,10 +115,16 @@ def generate_pdf_certificate(course_id: CourseKey, user: User, certificate_uuid:
     :param course_id: The ID of the course the learner completed.
     :param user: The user to generate the certificate for.
     :param certificate_uuid: The UUID of the certificate to generate.
-    :param options: A dictionary containing the following keys:
-        - template_path: The path to the PDF template file.
-        - output_path: The path to save the generated certificate PDF file.
+    :param options: The custom options for the certificate.
     :returns: The URL of the saved certificate.
+
+    Options:
+      - template: The path to the PDF template file.
+      - template_two-lines: The path to the PDF template file for two-line course names.
+        A two-line course name is specified by using a semicolon as a separator.
+      - font: The name of the font to use.
+      - name_y: The Y coordinate of the name on the certificate (vertical position on the template).
+      - course_name_y: The Y coordinate of the course name on the certificate (vertical position on the template).
     """
     log.info("Starting certificate generation for user %s", user.id)
     # Get template from the ExternalCertificateAsset.
