@@ -1,0 +1,4 @@
+{% load i18n %}
+{% autoescape off %}
+{% blocktrans trimmed %}Congratulations! Your Course Certificate from {{ platform_name }} is Ready{% endblocktrans %}
+{% endautoescape %}
