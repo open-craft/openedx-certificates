@@ -149,8 +149,6 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
                  1. Do not have a certificate for this course and certificate type.
                  2. Have such a certificate with an error status.
         """
-        # TODO: Delete this after testing.
-        return user_ids
         users_ids_with_certificates = ExternalCertificate.objects.filter(
             models.Q(course_id=self.course_id),
             models.Q(certificate_type=self.certificate_type),

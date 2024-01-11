@@ -111,7 +111,6 @@ class TestExternalCertificateCourseConfiguration:
         eligible_user_ids = self.course_config.get_eligible_user_ids()
         assert eligible_user_ids == [1, 2, 3]
 
-    @pytest.mark.xfail(reason="The filtering is currently disabled for testing purposes.")
     @pytest.mark.django_db()
     def test_filter_out_user_ids_with_certificates(self):
         """Test the filter_out_user_ids_with_certificates method."""
