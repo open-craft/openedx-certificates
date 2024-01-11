@@ -175,6 +175,23 @@ class TestExternalCertificateCourseConfiguration:
         ).exists()
         mock_send_email.assert_called_once()
 
+        # For now, we only prevent the generation task from sending emails to inactive users.
+        # In the future, we may want to prevent the generation task from generating certificates for inactive users.
+
+        user = UserFactory.create(is_active=False)
+
+        self.course_config.generate_certificate_for_user(user.id, task_id)
+        assert ExternalCertificate.objects.filter(course_id=self.course_config.course_id).count() == 2
+        mock_send_email.assert_called_once()
+
+        user = UserFactory.create()
+        user.set_unusable_password()
+        user.save()
+
+        self.course_config.generate_certificate_for_user(user.id, task_id)
+        assert ExternalCertificate.objects.filter(course_id=self.course_config.course_id).count() == 3
+        mock_send_email.assert_called_once()
+
     @pytest.mark.django_db()
     @patch.object(ExternalCertificate, 'send_email')
     def test_generate_certificate_for_user_update_existing(self, mock_send_email: Mock):
