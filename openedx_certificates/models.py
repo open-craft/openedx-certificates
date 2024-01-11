@@ -15,9 +15,11 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django_celery_beat.models import IntervalSchedule, PeriodicTask
+from edx_ace import Message, Recipient, ace
 from model_utils.models import TimeStampedModel
 from opaque_keys.edx.django.models import CourseKeyField
 
+from openedx_certificates.compat import get_course_name
 from openedx_certificates.exceptions import AssetNotFoundError, CertificateGenerationError
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -219,6 +221,8 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
             certificate.save()
             msg = f'Failed to generate the {certificate.uuid=} for {user_id=} with {self.id=}.'
             raise CertificateGenerationError(msg) from exc
+        else:
+            certificate.send_email()
 
 
 class ExternalCertificate(TimeStampedModel):
@@ -269,6 +273,23 @@ class ExternalCertificate(TimeStampedModel):
 
     def __str__(self):  # noqa: D105
         return f"{self.certificate_type} for {self.user_full_name} in {self.course_id}"
+
+    def send_email(self):
+        """Send a certificate link to the student."""
+        course_name = get_course_name(self.course_id)
+        user = get_user_model().objects.get(id=self.user_id)
+        msg = Message(
+            name="certificate_generated",
+            app_label="openedx_certificates",
+            recipient=Recipient(lms_user_id=user.id, email_address=user.email),
+            language='en',
+            context={
+                'certificate_link': self.download_url,
+                'course_name': course_name,
+                'platform_name': settings.PLATFORM_NAME,
+            },
+        )
+        ace.send(msg)
 
 
 class ExternalCertificateAsset(TimeStampedModel):

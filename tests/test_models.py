@@ -157,7 +157,8 @@ class TestExternalCertificateCourseConfiguration:
         assert filtered_users == [3, 6]
 
     @pytest.mark.django_db()
-    def test_generate_certificate_for_user(self):
+    @patch.object(ExternalCertificate, 'send_email')
+    def test_generate_certificate_for_user(self, mock_send_email: Mock):
         """Test the generate_certificate_for_user method."""
         user = UserFactory.create()
         task_id = 123
@@ -172,9 +173,11 @@ class TestExternalCertificateCourseConfiguration:
             generation_task_id=task_id,
             download_url="test_url",
         ).exists()
+        mock_send_email.assert_called_once()
 
     @pytest.mark.django_db()
-    def test_generate_certificate_for_user_update_existing(self):
+    @patch.object(ExternalCertificate, 'send_email')
+    def test_generate_certificate_for_user_update_existing(self, mock_send_email: Mock):
         """Test the generate_certificate_for_user method updates an existing certificate."""
         user = UserFactory.create()
 
@@ -198,6 +201,7 @@ class TestExternalCertificateCourseConfiguration:
             generation_task_id=0,
             download_url="test_url",
         ).exists()
+        mock_send_email.assert_called_once()
 
     @pytest.mark.django_db()
     @patch('openedx_certificates.models.import_module')
