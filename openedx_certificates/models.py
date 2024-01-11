@@ -225,7 +225,10 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
             msg = f'Failed to generate the {certificate.uuid=} for {user_id=} with {self.id=}.'
             raise CertificateGenerationError(msg) from exc
         else:
-            certificate.send_email()
+            # TODO: In the future, we want to check this before generating the certificate.
+            #       Perhaps we could even include this in a processor to optimize it.
+            if user.is_active and user.has_usable_password():
+                certificate.send_email()
 
 
 class ExternalCertificate(TimeStampedModel):
