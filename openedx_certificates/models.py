@@ -286,6 +286,7 @@ class ExternalCertificate(TimeStampedModel):
             context={
                 'certificate_link': self.download_url,
                 'course_name': course_name,
+                'platform_name': settings.PLATFORM_NAME,
             },
         )
         ace.send(msg)
