@@ -18,6 +18,7 @@ from .models import (
     ExternalCertificateCourseConfiguration,
     ExternalCertificateType,
 )
+from .tasks import generate_certificates_for_course_task
 
 if TYPE_CHECKING:  # pragma: no cover
     from django.http import HttpRequest
@@ -170,8 +171,7 @@ class ExternalCertificateCourseConfigurationAdmin(DjangoObjectActions, ReverseMo
             _request: The request object.
             obj: The ExternalCertificateCourse instance.
         """
-        # TODO: Use the celery task instead of the generate_certificates method.
-        obj.generate_certificates()
+        generate_certificates_for_course_task.delay(obj.id)
 
     change_actions = ('generate_certificates',)
 
