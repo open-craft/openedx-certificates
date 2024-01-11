@@ -19,7 +19,7 @@ def test_generate_certificate_for_user():
     task_id = 789
 
     with patch('openedx_certificates.models.ExternalCertificateCourseConfiguration.objects.get') as mock_get, patch(
-        'openedx_certificates.tasks.generate_certificate_for_user_task'
+        'openedx_certificates.tasks.generate_certificate_for_user_task',
     ) as mock_task:
         mock_config = Mock()
         mock_get.return_value = mock_config
@@ -42,7 +42,7 @@ def test_generate_certificates_for_course_with_filtering():
     filtered_user_ids = [1, 3]  # User IDs after filtering (e.g., users 2 and 4 already have certificates)
 
     with patch('openedx_certificates.models.ExternalCertificateCourseConfiguration.objects.get') as mock_get, patch(
-        'openedx_certificates.tasks.generate_certificate_for_user_task.delay'
+        'openedx_certificates.tasks.generate_certificate_for_user_task.delay',
     ) as mock_delay:
         mock_config = Mock()
         mock_get.return_value = mock_config
