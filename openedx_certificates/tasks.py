@@ -37,8 +37,8 @@ def generate_certificates_for_course_task(course_config_id: int):
     """
     course_config = ExternalCertificateCourseConfiguration.objects.get(id=course_config_id)
     user_ids = course_config.get_eligible_user_ids()
-    for name in user_ids:
-        generate_certificate_for_user_task.apply_async(course_config_id, name)
+    for user_id in user_ids:
+        generate_certificate_for_user_task.delay(course_config_id, user_id)
 
 
 @app.task

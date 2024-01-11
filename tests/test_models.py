@@ -100,6 +100,7 @@ class TestExternalCertificateCourseConfiguration:
         assert periodic_task.enabled is False
         assert periodic_task.name == str(self.course_config)
         assert periodic_task.args == f'[{self.course_config.id}]'
+        assert periodic_task.task == 'openedx_certificates.tasks.generate_certificates_for_course_task'
 
     def test_str_representation(self):
         """Test the string representation of the model."""
