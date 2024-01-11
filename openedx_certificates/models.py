@@ -99,19 +99,23 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
 
     def save(self, *args, **kwargs):
         """Create a new PeriodicTask every time a new ExternalCertificateCourseConfiguration is created."""
-        if self._state.adding:
-            from openedx_certificates.tasks import generate_certificates_for_course_task  # Avoid circular imports.
+        from openedx_certificates.tasks import generate_certificates_for_course_task as task  # Avoid circular imports.
 
+        task_path = f"{task.__module__}.{task.__name__}"
+
+        if self._state.adding:
             schedule, created = IntervalSchedule.objects.get_or_create(every=10, period=IntervalSchedule.DAYS)
             self.periodic_task = PeriodicTask.objects.create(
                 enabled=False,
                 interval=schedule,
                 name=f'{self.certificate_type} in {self.course_id}',
-                task=generate_certificates_for_course_task,
+                task=task_path,
             )
 
         super().save(*args, **kwargs)
 
+        # Update the task on each save to prevent it from getting out of sync (e.g., after changing a task definition).
+        self.periodic_task.task = task_path
         # Update the args of the PeriodicTask to include the ID of the ExternalCertificateCourseConfiguration.
         self.periodic_task.args = json.dumps([self.id])
         self.periodic_task.save()
