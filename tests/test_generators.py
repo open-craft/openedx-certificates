@@ -61,14 +61,27 @@ def test_register_font_with_custom_font(mock_register_font: Mock, mock_font_clas
 
 
 @pytest.mark.parametrize(
-    ("username", "course_name", "options"),
+    ("username", "course_name", "options", "expected_name_color", "expected_course_name_color"),
     [
-        ('John Doe', 'Programming 101', {}),  # No options - use default coordinates.
-        ('John Doe', 'Programming 101', {'name_y': 250, 'course_name_y': 200}),  # Custom coordinates.
+        ('John Doe', 'Programming 101', {}, (0.0, 0.0, 0.0), (0.0, 0.0, 0.0)),  # No options - use default coordinates.
+        (
+            'John Doe',
+            'Programming 101',
+            {'name_y': 250, 'course_name_y': 200, 'name_color': '123', 'course_name_color': '#9B192A'},
+            (17 / 255, 34 / 255, 51 / 255),
+            (155 / 255, 25 / 255, 42 / 255),
+        ),  # Custom coordinates and colors.
     ],
 )
 @patch('openedx_certificates.generators.canvas.Canvas', return_value=Mock(stringWidth=Mock(return_value=10)))
-def test_write_text_on_template(mock_canvas_class: Mock, username: str, course_name: str, options: dict[str, int]):
+def test_write_text_on_template(  # noqa: PLR0913
+    mock_canvas_class: Mock,
+    username: str,
+    course_name: str,
+    options: dict[str, int],
+    expected_name_color: tuple[float, float, float],
+    expected_course_name_color: tuple[float, float, float],
+):
     """Test the _write_text_on_template function."""
     template_height = 300
     template_width = 200
@@ -99,9 +112,11 @@ def test_write_text_on_template(mock_canvas_class: Mock, username: str, course_n
 
     # Check the calls to setFont and drawString methods on Canvas object
     assert canvas_object.setFont.call_args_list[0] == call(font, 32)
+    assert canvas_object.setFillColorRGB.call_args_list[0] == call(*expected_name_color)
     assert canvas_object.drawString.call_args_list[0] == call(expected_name_x, expected_name_y, username)
 
     assert canvas_object.setFont.call_args_list[1] == call(font, 28)
+    assert canvas_object.setFillColorRGB.call_args_list[1] == call(*expected_course_name_color)
     assert canvas_object.drawString.call_args_list[1] == call(
         expected_course_name_x,
         expected_course_name_y,
