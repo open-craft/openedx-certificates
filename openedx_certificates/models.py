@@ -101,7 +101,8 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
         """Create a new PeriodicTask every time a new ExternalCertificateCourseConfiguration is created."""
         from openedx_certificates.tasks import generate_certificates_for_course_task as task  # Avoid circular imports.
 
-        task_path = f"{task.__module__}.{task.__name__}"
+        # Use __wrapped__ to get the original function, as the task is wrapped by the @app.task decorator.
+        task_path = f"{task.__wrapped__.__module__}.{task.__wrapped__.__name__}"
 
         if self._state.adding:
             schedule, created = IntervalSchedule.objects.get_or_create(every=10, period=IntervalSchedule.DAYS)
