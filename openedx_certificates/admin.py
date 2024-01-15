@@ -8,9 +8,12 @@ from typing import TYPE_CHECKING, Generator
 
 from django import forms
 from django.contrib import admin
+from django.core.exceptions import ValidationError
 from django.utils.html import format_html
 from django_object_actions import DjangoObjectActions, action
 from django_reverse_admin import ReverseModelAdmin
+from opaque_keys import InvalidKeyError
+from opaque_keys.edx.keys import CourseKey
 
 from .models import (
     ExternalCertificate,
@@ -108,6 +111,22 @@ class ExternalCertificateAssetAdmin(admin.ModelAdmin):  # noqa: D101
     prepopulated_fields = {"asset_slug": ("description",)}  # noqa: RUF012
 
 
+class ExternalCertificateCourseConfigurationForm(forms.ModelForm):  # noqa: D101
+    class Meta:  # noqa: D106
+        model = ExternalCertificateCourseConfiguration
+        fields = ('course_id', 'certificate_type', 'custom_options')
+
+    def clean_course_id(self) -> CourseKey:
+        """Validate the course_id field."""
+        course_id = self.cleaned_data.get('course_id')
+        try:
+            CourseKey.from_string(course_id)
+        except InvalidKeyError as exc:
+            msg = "Invalid course ID format. The correct format is 'course-v1:{Organization}+{Course}+{Run}'."
+            raise ValidationError(msg) from exc
+        return course_id
+
+
 @admin.register(ExternalCertificateCourseConfiguration)
 class ExternalCertificateCourseConfigurationAdmin(DjangoObjectActions, ReverseModelAdmin):
     """
@@ -117,6 +136,7 @@ class ExternalCertificateCourseConfigurationAdmin(DjangoObjectActions, ReverseMo
     The reverse inline provides a way to manage the periodic task from the configuration page.
     """
 
+    form = ExternalCertificateCourseConfigurationForm
     inline_type = 'stacked'
     inline_reverse = [  # noqa: RUF012
         (
