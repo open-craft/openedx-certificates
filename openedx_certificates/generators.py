@@ -64,18 +64,42 @@ def _write_text_on_template(template: any, font: str, username: str, course_name
     :param font: Font name.
     :param username: The name of the user to generate the certificate for.
     :param course_name: The name of the course the learner completed.
-    :param options: A dictionary containing the Y coordinates for name and course name.
+    :param options: A dictionary documented in the `generate_pdf_certificate` function.
     :returns: A canvas with written data.
     """
+
+    def hex_to_rgb(hex_color: str) -> tuple[float, float, float]:
+        """
+        Convert a hexadecimal color code to an RGB tuple with floating-point values.
+
+        :param hex_color: A hexadecimal color string, which can start with '#' and be either 3 or 6 characters long.
+        :returns: A tuple representing the RGB color as (red, green, blue), with each value ranging from 0.0 to 1.0.
+        """
+        hex_color = hex_color.lstrip('#')
+        # Expand shorthand form (e.g. "158" to "115588")
+        if len(hex_color) == 3:
+            hex_color = ''.join([c * 2 for c in hex_color])
+
+        # noinspection PyTypeChecker
+        return tuple(int(hex_color[i : i + 2], 16) / 255 for i in range(0, 6, 2))
+
     template_width, template_height = template.mediabox[2:]
     pdf_canvas = canvas.Canvas(io.BytesIO(), pagesize=(template_width, template_height))
-    pdf_canvas.setFont(font, 32)
+
     # Write the learner name.
+    pdf_canvas.setFont(font, 32)
+    name_color = options.get('name_color', '#000')
+    pdf_canvas.setFillColorRGB(*hex_to_rgb(name_color))
+
     name_x = (template_width - pdf_canvas.stringWidth(username)) / 2
     name_y = options.get('name_y', 290)
     pdf_canvas.drawString(name_x, name_y, username)
+
     # Write the course name.
     pdf_canvas.setFont(font, 28)
+    course_name_color = options.get('course_name_color', '#000')
+    pdf_canvas.setFillColorRGB(*hex_to_rgb(course_name_color))
+
     course_name_x = (template_width - pdf_canvas.stringWidth(course_name)) / 2
     course_name_y = options.get('course_name_y', 220)
     pdf_canvas.drawString(course_name_x, course_name_y, course_name)
@@ -124,7 +148,9 @@ def generate_pdf_certificate(course_id: CourseKey, user: User, certificate_uuid:
         A two-line course name is specified by using a semicolon as a separator.
       - font: The name of the font to use.
       - name_y: The Y coordinate of the name on the certificate (vertical position on the template).
+      - name_color: The color of the name on the certificate (hexadecimal color code).
       - course_name_y: The Y coordinate of the course name on the certificate (vertical position on the template).
+      - course_name_color: The color of the course name on the certificate (hexadecimal color code).
     """
     log.info("Starting certificate generation for user %s", user.id)
     # Get template from the ExternalCertificateAsset.
