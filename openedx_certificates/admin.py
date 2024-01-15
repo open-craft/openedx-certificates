@@ -198,9 +198,20 @@ class ExternalCertificateCourseConfigurationAdmin(DjangoObjectActions, ReverseMo
 
 @admin.register(ExternalCertificate)
 class ExternalCertificateAdmin(admin.ModelAdmin):  # noqa: D101
-    list_display = ('user_id', 'user_full_name', 'course_id', 'certificate_type', 'status', 'url')
+    list_display = (
+        'user_id',
+        'user_full_name',
+        'course_id',
+        'certificate_type',
+        'status',
+        'url',
+        'created',
+        'modified',
+    )
     readonly_fields = (
         'user_id',
+        'created',
+        'modified',
         'user_full_name',
         'course_id',
         'certificate_type',
