@@ -7,8 +7,10 @@ It also simplifies running tests outside edx-platform's environment by stubbing 
 from __future__ import annotations
 
 from contextlib import contextmanager
+from datetime import datetime
 from typing import TYPE_CHECKING
 
+import pytz
 from celery import Celery
 from django.conf import settings
 
@@ -74,3 +76,12 @@ def get_course_grade_factory():  # noqa: ANN201
     from lms.djangoapps.grades.course_grade_factory import CourseGradeFactory
 
     return CourseGradeFactory()
+
+
+def get_localized_certificate_date() -> str:
+    """Get the localized date from Open edX."""
+    # noinspection PyUnresolvedReferences,PyPackageRequirements
+    from common.djangoapps.util.date_utils import strftime_localized
+
+    date = datetime.now(pytz.timezone(settings.TIME_ZONE))
+    return strftime_localized(date, settings.CERTIFICATE_DATE_FORMAT)
