@@ -140,7 +140,7 @@ def test_write_text_on_template(mock_canvas_class: Mock, options: dict[str, int]
     assert canvas_object.drawString.call_args_list[2] == call(expected_issue_date_x, expected_issue_date_y, test_date)
 
 
-@override_settings(LMS_ROOT_URL="http://example.com", MEDIA_URL="media/")
+@override_settings(LMS_ROOT_URL="https://example.com", MEDIA_URL="media/")
 @pytest.mark.parametrize(
     "storage",
     [
@@ -180,6 +180,11 @@ def test_save_certificate(mock_contentfile: Mock, storage: DefaultStorage | Mock
         assert url == f'{settings.LMS_ROOT_URL}/media/{output_path}'
     else:
         assert url == f'/{output_path}'
+
+    # Allow specifying a custom domain for certificates.
+    with override_settings(CERTIFICATES_CUSTOM_DOMAIN='https://example2.com'):
+        url = _save_certificate(certificate, certificate_uuid)
+        assert url == f'https://example2.com/{certificate_uuid}.pdf'
 
 
 @pytest.mark.parametrize(
