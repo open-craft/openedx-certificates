@@ -140,6 +140,10 @@ def _save_certificate(certificate: PdfWriter, certificate_uuid: UUID) -> str:
         url = f"{settings.LMS_ROOT_URL}{settings.MEDIA_URL}{output_path}"
     else:
         url = default_storage.url(output_path)
+
+    if custom_domain := getattr(settings, 'CERTIFICATES_CUSTOM_DOMAIN', None):
+        url = f"{custom_domain}/{certificate_uuid}.pdf"
+
     return url
 
 
