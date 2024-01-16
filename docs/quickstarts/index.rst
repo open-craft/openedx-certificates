@@ -10,8 +10,8 @@ See the following diagram for a quick overview of the certificate generation pro
 
     digraph G {
         CertificateType [shape=box, color="black", label="Certificate Type\n\nProvides reusable configuration by storing the:\n- retrieval function\n- generation function\n- custom options"]
-        CertificateCourseConfiguration [shape=box, color="black", label="Certificate Course Configuration\n\n1. Stores option overrdes.\n2.Defines custom schedules for certificate generations."]
-        RetrievalFunc [shape=ellipse, color="blue", label="retrieval_func\n\nA function that retrieves information\n about learners eliglble for the certificate.\nIt defines the criteria for getting a certificate."]
+        CertificateCourseConfiguration [shape=box, color="black", label="Certificate Course Configuration\n\n1. Stores option overrides.\n2.Defines custom schedules for certificate generations."]
+        RetrievalFunc [shape=ellipse, color="blue", label="retrieval_func\n\nA function that retrieves information\n about learners eligible for the certificate.\nIt defines the criteria for getting a certificate."]
         GenerationFunc [shape=ellipse, color="blue", label="generation_func\n\nA function that defines how the certificate\ngeneration process looks like\n(e.g., it creates a PDF file)."]
         Certificate [shape=box, color="black", label="Certificate\n\nThe generated certificate."]
 
