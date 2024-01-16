@@ -1,17 +1,17 @@
 {% load i18n %}{% autoescape off %}
 
 <p>
-    {% blocktrans %}Congratulations on successfully completing your course at {{ platform_name }}!{% endblocktrans %}
+    {% blocktrans %}Thank you for your participation in {{ course_name }} at {{ platform_name }}!{% endblocktrans %}
 </p>
 
 <p>
-    {% blocktrans %}We are pleased to inform you that your certificate for the course "{{ course_name }}" is now available. This certificate acknowledges your dedication and hard work.{% endblocktrans %}
+    {% blocktrans %}We are happy to inform you that you have earned a certificate. You should feel very proud of the work you have done in this course. We congratulate you on your efforts and your learning.{% endblocktrans %}
 </p>
 
 <p>
     {% trans "To view and download your certificate, please click on the following link:" %}
 </p>
-<p><a href="{{ certificate_link }}">{{ certificate_link }}</a></p>
+<p><a href="{{ certificate_link }}">View and download your certificate</a></p>
 
 <div>
     <div>
