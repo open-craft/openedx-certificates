@@ -21,7 +21,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 
-from openedx_certificates.compat import get_course_name
+from openedx_certificates.compat import get_course_name, get_localized_certificate_date
 from openedx_certificates.models import ExternalCertificateAsset
 
 log = logging.getLogger(__name__)
@@ -103,6 +103,17 @@ def _write_text_on_template(template: any, font: str, username: str, course_name
     course_name_x = (template_width - pdf_canvas.stringWidth(course_name)) / 2
     course_name_y = options.get('course_name_y', 220)
     pdf_canvas.drawString(course_name_x, course_name_y, course_name)
+
+    # Write the issue date.
+    issue_date = get_localized_certificate_date()
+    pdf_canvas.setFont(font, 12)
+    issue_date_color = options.get('issue_date_color', '#000')
+    pdf_canvas.setFillColorRGB(*hex_to_rgb(issue_date_color))
+
+    issue_date_x = (template_width - pdf_canvas.stringWidth(issue_date)) / 2
+    issue_date_y = options.get('issue_date_y', 120)
+    pdf_canvas.drawString(issue_date_x, issue_date_y, issue_date)
+
     return pdf_canvas
 
 
@@ -151,6 +162,8 @@ def generate_pdf_certificate(course_id: CourseKey, user: User, certificate_uuid:
       - name_color: The color of the name on the certificate (hexadecimal color code).
       - course_name_y: The Y coordinate of the course name on the certificate (vertical position on the template).
       - course_name_color: The color of the course name on the certificate (hexadecimal color code).
+      - issue_date_y: The Y coordinate of the issue date on the certificate (vertical position on the template).
+      - issue_date_color: The color of the issue date on the certificate (hexadecimal color code).
     """
     log.info("Starting certificate generation for user %s", user.id)
     # Get template from the ExternalCertificateAsset.

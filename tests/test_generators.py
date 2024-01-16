@@ -61,32 +61,36 @@ def test_register_font_with_custom_font(mock_register_font: Mock, mock_font_clas
 
 
 @pytest.mark.parametrize(
-    ("username", "course_name", "options", "expected_name_color", "expected_course_name_color"),
+    ("options", "expected"),
     [
-        ('John Doe', 'Programming 101', {}, (0.0, 0.0, 0.0), (0.0, 0.0, 0.0)),  # No options - use default coordinates.
+        ({}, {}),  # No options - use default coordinates and colors.
         (
-            'John Doe',
-            'Programming 101',
-            {'name_y': 250, 'course_name_y': 200, 'name_color': '123', 'course_name_color': '#9B192A'},
-            (17 / 255, 34 / 255, 51 / 255),
-            (155 / 255, 25 / 255, 42 / 255),
+            {
+                'name_y': 250,
+                'course_name_y': 200,
+                'issue_date_y': 150,
+                'name_color': '123',
+                'course_name_color': '#9B192A',
+                'issue_date_color': '#f59a8e',
+            },
+            {
+                'name_color': (17 / 255, 34 / 255, 51 / 255),
+                'course_name_color': (155 / 255, 25 / 255, 42 / 255),
+                'issue_date_color': (245 / 255, 154 / 255, 142 / 255),
+            },
         ),  # Custom coordinates and colors.
     ],
 )
 @patch('openedx_certificates.generators.canvas.Canvas', return_value=Mock(stringWidth=Mock(return_value=10)))
-def test_write_text_on_template(  # noqa: PLR0913
-    mock_canvas_class: Mock,
-    username: str,
-    course_name: str,
-    options: dict[str, int],
-    expected_name_color: tuple[float, float, float],
-    expected_course_name_color: tuple[float, float, float],
-):
+def test_write_text_on_template(mock_canvas_class: Mock, options: dict[str, int], expected: dict):
     """Test the _write_text_on_template function."""
+    username = 'John Doe'
+    course_name = 'Programming 101'
     template_height = 300
     template_width = 200
     font = 'Helvetica'
     string_width = mock_canvas_class.return_value.stringWidth.return_value
+    test_date = 'April 1, 2021'
 
     # Reset the mock to discard calls list from previous tests
     mock_canvas_class.reset_mock()
@@ -95,7 +99,8 @@ def test_write_text_on_template(  # noqa: PLR0913
     template_mock.mediabox = [0, 0, template_width, template_height]
 
     # Call the function with test parameters and mocks
-    _write_text_on_template(template_mock, font, username, course_name, options)
+    with patch('openedx_certificates.generators.get_localized_certificate_date', return_value=test_date):
+        _write_text_on_template(template_mock, font, username, course_name, options)
 
     # Verifying that Canvas was the correct pagesize.
     # Use `call_args_list` to ignore the first argument, which is an instance of io.BytesIO.
@@ -109,8 +114,15 @@ def test_write_text_on_template(  # noqa: PLR0913
     expected_name_y = options.get('name_y', 290)
     expected_course_name_x = (template_width - string_width) / 2
     expected_course_name_y = options.get('course_name_y', 220)
+    expected_issue_date_x = (template_width - string_width) / 2
+    expected_issue_date_y = options.get('issue_date_y', 120)
 
-    # Check the calls to setFont and drawString methods on Canvas object
+    # Expected colors for setFillColorRGB method
+    expected_name_color = expected.get('name_color', (0, 0, 0))
+    expected_course_name_color = expected.get('course_name_color', (0, 0, 0))
+    expected_issue_date_color = expected.get('issue_date_color', (0, 0, 0))
+
+    # Check the calls to setFont, setFillColorRGB and drawString methods on Canvas object
     assert canvas_object.setFont.call_args_list[0] == call(font, 32)
     assert canvas_object.setFillColorRGB.call_args_list[0] == call(*expected_name_color)
     assert canvas_object.drawString.call_args_list[0] == call(expected_name_x, expected_name_y, username)
@@ -122,6 +134,10 @@ def test_write_text_on_template(  # noqa: PLR0913
         expected_course_name_y,
         course_name,
     )
+
+    assert canvas_object.setFont.call_args_list[2] == call(font, 12)
+    assert canvas_object.setFillColorRGB.call_args_list[2] == call(*expected_issue_date_color)
+    assert canvas_object.drawString.call_args_list[2] == call(expected_issue_date_x, expected_issue_date_y, test_date)
 
 
 @override_settings(LMS_ROOT_URL="http://example.com", MEDIA_URL="media/")
