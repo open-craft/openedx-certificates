@@ -28,29 +28,8 @@ if TYPE_CHECKING:  # pragma: no cover
     from django_celery_beat.models import IntervalSchedule
 
 
-class ExternalCertificateTypeAdminForm(forms.ModelForm):
-    """Generate a list of available functions for the function fields."""
-
-    retrieval_func = forms.ChoiceField(choices=[])
-    generation_func = forms.ChoiceField(choices=[])
-
-    @staticmethod
-    def _available_functions(module: str, prefix: str) -> Generator[tuple[str, str], None, None]:
-        """
-        Import a module and return all functions in it that start with a specific prefix.
-
-        :param module: The name of the module to import.
-        :param prefix: The prefix of the function names to return.
-
-        :return: A tuple containing the functions that start with the prefix in the module.
-        """
-        # TODO: Implement plugin support for the functions.
-        _module = importlib.import_module(module)
-        return (
-            (f'{obj.__module__}.{name}', f'{obj.__module__}.{name}')
-            for name, obj in inspect.getmembers(_module, inspect.isfunction)
-            if name.startswith(prefix)
-        )
+class DocstringOptionsMixin:
+    """A mixin to add the docstring of the function to the help text of the function field."""
 
     @staticmethod
     def _get_docstring_custom_options(func: str) -> str:
@@ -77,6 +56,31 @@ class ExternalCertificateTypeAdminForm(forms.ModelForm):
             )
         # Use pre to preserve the newlines and indentation.
         return f'<pre>{docstring}</pre>'
+
+
+class ExternalCertificateTypeAdminForm(forms.ModelForm, DocstringOptionsMixin):
+    """Generate a list of available functions for the function fields."""
+
+    retrieval_func = forms.ChoiceField(choices=[])
+    generation_func = forms.ChoiceField(choices=[])
+
+    @staticmethod
+    def _available_functions(module: str, prefix: str) -> Generator[tuple[str, str], None, None]:
+        """
+        Import a module and return all functions in it that start with a specific prefix.
+
+        :param module: The name of the module to import.
+        :param prefix: The prefix of the function names to return.
+
+        :return: A tuple containing the functions that start with the prefix in the module.
+        """
+        # TODO: Implement plugin support for the functions.
+        _module = importlib.import_module(module)
+        return (
+            (f'{obj.__module__}.{name}', f'{obj.__module__}.{name}')
+            for name, obj in inspect.getmembers(_module, inspect.isfunction)
+            if name.startswith(prefix)
+        )
 
     def __init__(self, *args, **kwargs):
         """Initializes the choices for the retrieval and generation function selection fields."""
@@ -111,10 +115,25 @@ class ExternalCertificateAssetAdmin(admin.ModelAdmin):  # noqa: D101
     prepopulated_fields = {"asset_slug": ("description",)}  # noqa: RUF012
 
 
-class ExternalCertificateCourseConfigurationForm(forms.ModelForm):  # noqa: D101
+class ExternalCertificateCourseConfigurationForm(forms.ModelForm, DocstringOptionsMixin):  # noqa: D101
     class Meta:  # noqa: D106
         model = ExternalCertificateCourseConfiguration
         fields = ('course_id', 'certificate_type', 'custom_options')
+
+    def __init__(self, *args, **kwargs):
+        """Initializes the choices for the retrieval and generation function selection fields."""
+        super().__init__(*args, **kwargs)
+        options = ''
+
+        if self.instance and getattr(self.instance, 'certificate_type', None):
+            if self.instance.certificate_type.generation_func:
+                generation_options = self._get_docstring_custom_options(self.instance.certificate_type.generation_func)
+                options += generation_options.replace('Custom options:', '\nGeneration options:')
+            if self.instance.certificate_type.retrieval_func:
+                retrieval_options = self._get_docstring_custom_options(self.instance.certificate_type.retrieval_func)
+                options += retrieval_options.replace('Custom options:', '\nRetrieval options:')
+
+            self.fields['custom_options'].help_text += options
 
     def clean_course_id(self) -> CourseKey:
         """Validate the course_id field."""
