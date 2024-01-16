@@ -135,7 +135,7 @@ def test_write_text_on_template(mock_canvas_class: Mock, options: dict[str, int]
         course_name,
     )
 
-    assert canvas_object.setFont.call_args_list[2] == call(font, 20)
+    assert canvas_object.setFont.call_args_list[2] == call(font, 12)
     assert canvas_object.setFillColorRGB.call_args_list[2] == call(*expected_issue_date_color)
     assert canvas_object.drawString.call_args_list[2] == call(expected_issue_date_x, expected_issue_date_y, test_date)
 

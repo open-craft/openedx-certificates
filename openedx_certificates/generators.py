@@ -106,7 +106,7 @@ def _write_text_on_template(template: any, font: str, username: str, course_name
 
     # Write the issue date.
     issue_date = get_localized_certificate_date()
-    pdf_canvas.setFont(font, 20)
+    pdf_canvas.setFont(font, 12)
     issue_date_color = options.get('issue_date_color', '#000')
     pdf_canvas.setFillColorRGB(*hex_to_rgb(issue_date_color))
 
