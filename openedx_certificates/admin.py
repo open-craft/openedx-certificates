@@ -125,14 +125,15 @@ class ExternalCertificateCourseConfigurationForm(forms.ModelForm, DocstringOptio
         super().__init__(*args, **kwargs)
         options = ''
 
-        if self.instance.certificate_type.generation_func:
-            generation_options = self._get_docstring_custom_options(self.instance.certificate_type.generation_func)
-            options += generation_options.replace('Custom options:', '\nGeneration options:')
-        if self.instance.certificate_type.retrieval_func:
-            retrieval_options = self._get_docstring_custom_options(self.instance.certificate_type.retrieval_func)
-            options += retrieval_options.replace('Custom options:', '\nRetrieval options:')
+        if self.instance.certificate_type:
+            if self.instance.certificate_type.generation_func:
+                generation_options = self._get_docstring_custom_options(self.instance.certificate_type.generation_func)
+                options += generation_options.replace('Custom options:', '\nGeneration options:')
+            if self.instance.certificate_type.retrieval_func:
+                retrieval_options = self._get_docstring_custom_options(self.instance.certificate_type.retrieval_func)
+                options += retrieval_options.replace('Custom options:', '\nRetrieval options:')
 
-        self.fields['custom_options'].help_text += options
+            self.fields['custom_options'].help_text += options
 
     def clean_course_id(self) -> CourseKey:
         """Validate the course_id field."""
