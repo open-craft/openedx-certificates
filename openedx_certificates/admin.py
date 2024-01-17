@@ -125,7 +125,7 @@ class ExternalCertificateCourseConfigurationForm(forms.ModelForm, DocstringOptio
         super().__init__(*args, **kwargs)
         options = ''
 
-        if self.instance.certificate_type:
+        if self.instance and getattr(self.instance, 'certificate_type', None):
             if self.instance.certificate_type.generation_func:
                 generation_options = self._get_docstring_custom_options(self.instance.certificate_type.generation_func)
                 options += generation_options.replace('Custom options:', '\nGeneration options:')
