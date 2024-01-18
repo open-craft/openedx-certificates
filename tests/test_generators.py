@@ -13,6 +13,7 @@ from django.test import override_settings
 from inmemorystorage import InMemoryStorage
 from opaque_keys.edx.keys import CourseKey
 from pypdf import PdfWriter
+from pypdf.constants import UserAccessPermissions
 
 from openedx_certificates.generators import (
     _get_user_name,
@@ -150,8 +151,9 @@ def test_write_text_on_template(mock_canvas_class: Mock, options: dict[str, int]
         (Mock(spec=FileSystemStorage, exists=Mock(return_value=True))),
     ],
 )
+@patch('openedx_certificates.generators.secrets.token_hex', return_value='test_token')
 @patch('openedx_certificates.generators.ContentFile', autospec=True)
-def test_save_certificate(mock_contentfile: Mock, storage: DefaultStorage | Mock):
+def test_save_certificate(mock_contentfile: Mock, mock_token_hex: Mock, storage: DefaultStorage | Mock):
     """Test the _save_certificate function."""
     # Mock the certificate.
     certificate = Mock(spec=PdfWriter)
@@ -161,6 +163,13 @@ def test_save_certificate(mock_contentfile: Mock, storage: DefaultStorage | Mock
     certificate.write.return_value = pdf_bytes
     content_file = ContentFile(pdf_bytes.getvalue())
     mock_contentfile.return_value = content_file
+
+    # Expected values for the encrypt method
+    expected_pdf_permissions = (
+        UserAccessPermissions.PRINT
+        | UserAccessPermissions.PRINT_TO_REPRESENTATION
+        | UserAccessPermissions.EXTRACT_TEXT_AND_GRAPHICS
+    )
 
     # Run the function.
     with patch('openedx_certificates.generators.default_storage', storage):
@@ -180,6 +189,14 @@ def test_save_certificate(mock_contentfile: Mock, storage: DefaultStorage | Mock
         assert url == f'{settings.LMS_ROOT_URL}/media/{output_path}'
     else:
         assert url == f'/{output_path}'
+
+    # Check the calls to certificate.encrypt
+    certificate.encrypt.assert_called_once_with(
+        '',
+        mock_token_hex(),
+        permissions_flag=expected_pdf_permissions,
+        algorithm='AES-256',
+    )
 
     # Allow specifying a custom domain for certificates.
     with override_settings(CERTIFICATES_CUSTOM_DOMAIN='https://example2.com'):
