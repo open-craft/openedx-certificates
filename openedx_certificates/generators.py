@@ -11,12 +11,14 @@ from __future__ import annotations
 
 import io
 import logging
+import secrets
 from typing import TYPE_CHECKING, Any
 
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.files.storage import FileSystemStorage, default_storage
 from pypdf import PdfReader, PdfWriter
+from pypdf.constants import UserAccessPermissions
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
@@ -127,6 +129,14 @@ def _save_certificate(certificate: PdfWriter, certificate_uuid: UUID) -> str:
     """
     # Save the final PDF file to BytesIO.
     output_path = f'external_certificates/{certificate_uuid}.pdf'
+
+    view_print_extract_permission = (
+        UserAccessPermissions.PRINT
+        | UserAccessPermissions.PRINT_TO_REPRESENTATION
+        | UserAccessPermissions.EXTRACT_TEXT_AND_GRAPHICS
+    )
+    certificate.encrypt('', secrets.token_hex(32), permissions_flag=view_print_extract_permission, algorithm='AES-256')
+
     pdf_bytes = io.BytesIO()
     certificate.write(pdf_bytes)
     pdf_bytes.seek(0)  # Rewind to start.
