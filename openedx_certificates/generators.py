@@ -174,6 +174,7 @@ def generate_pdf_certificate(course_id: CourseKey, user: User, certificate_uuid:
       - font: The name of the font to use.
       - name_y: The Y coordinate of the name on the certificate (vertical position on the template).
       - name_color: The color of the name on the certificate (hexadecimal color code).
+      - course_name: Specify the course name to use instead of the course Display Name retrieved from Open edX.
       - course_name_y: The Y coordinate of the course name on the certificate (vertical position on the template).
       - course_name_color: The color of the course name on the certificate (hexadecimal color code).
       - issue_date_y: The Y coordinate of the issue date on the certificate (vertical position on the template).
@@ -184,7 +185,7 @@ def generate_pdf_certificate(course_id: CourseKey, user: User, certificate_uuid:
     template_file = ExternalCertificateAsset.get_asset_by_slug(options['template'])
 
     username = _get_user_name(user)
-    course_name = get_course_name(course_id)
+    course_name = options.get('course_name') or get_course_name(course_id)
 
     # HACK: We support two-line strings by using a semicolon as a separator.
     if ';' in course_name and (template_path := options.get('template_two-lines')):
