@@ -207,13 +207,20 @@ def test_save_certificate(mock_contentfile: Mock, mock_token_hex: Mock, storage:
 @pytest.mark.parametrize(
     ("course_name", "options", "expected_template_slug"),
     [
+        # Default.
         ('Test Course', {'template': 'template_slug'}, 'template_slug'),
+        # Replace semicolon with newline in course name.
         ('Test Course;Test Course', {'template': 'template_slug'}, 'template_slug'),
+        # Specify a different template for two-line course names.
         (
             'Test Course;Test Course',
             {'template': 'template_slug', 'template_two-lines': 'template_two_lines_slug'},
             'template_two_lines_slug',
         ),
+        # Override course name.
+        ('Test Course', {'template': 'template_slug', 'course_name': 'Override'}, 'template_slug'),
+        # Ignore empty course name override.
+        ('Test Course', {'template': 'template_slug', 'course_name': ''}, 'template_slug'),
     ],
 )
 @patch(
@@ -260,7 +267,10 @@ def test_generate_pdf_certificate(  # noqa: PLR0913
     assert result == 'certificate_url'
     mock_get_asset_by_slug.assert_called_with(expected_template_slug)
     mock_get_user_name.assert_called_once_with(user)
-    mock_get_course_name.assert_called_once_with(course_id)
+    if options.get('course_name'):
+        mock_get_course_name.assert_not_called()
+    else:
+        mock_get_course_name.assert_called_once_with(course_id)
     mock_register_font.assert_called_once_with(options)
     mock_pdf_reader.assert_called()
     mock_pdf_writer.assert_called()
