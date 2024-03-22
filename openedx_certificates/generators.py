@@ -102,9 +102,14 @@ def _write_text_on_template(template: any, font: str, username: str, course_name
     course_name_color = options.get('course_name_color', '#000')
     pdf_canvas.setFillColorRGB(*hex_to_rgb(course_name_color))
 
-    course_name_x = (template_width - pdf_canvas.stringWidth(course_name)) / 2
     course_name_y = options.get('course_name_y', 220)
-    pdf_canvas.drawString(course_name_x, course_name_y, course_name)
+    course_name_line_height = 28 * 1.1
+
+    # Split the course name into lines and write each of them in the center of the template.
+    for line_number, line in enumerate(course_name.split('\n')):
+        line_x = (template_width - pdf_canvas.stringWidth(line)) / 2
+        line_y = course_name_y - (line_number * course_name_line_height)
+        pdf_canvas.drawString(line_x, line_y, line)
 
     # Write the issue date.
     issue_date = get_localized_certificate_date()
@@ -169,7 +174,7 @@ def generate_pdf_certificate(course_id: CourseKey, user: User, certificate_uuid:
 
     Options:
       - template: The path to the PDF template file.
-      - template_two-lines: The path to the PDF template file for two-line course names.
+      - template_two_lines: The path to the PDF template file for two-line course names.
         A two-line course name is specified by using a semicolon as a separator.
       - font: The name of the font to use.
       - name_y: The Y coordinate of the name on the certificate (vertical position on the template).
@@ -181,16 +186,17 @@ def generate_pdf_certificate(course_id: CourseKey, user: User, certificate_uuid:
       - issue_date_color: The color of the issue date on the certificate (hexadecimal color code).
     """
     log.info("Starting certificate generation for user %s", user.id)
-    # Get template from the ExternalCertificateAsset.
-    template_file = ExternalCertificateAsset.get_asset_by_slug(options['template'])
 
     username = _get_user_name(user)
     course_name = options.get('course_name') or get_course_name(course_id)
 
+    # Get template from the ExternalCertificateAsset.
     # HACK: We support two-line strings by using a semicolon as a separator.
-    if ';' in course_name and (template_path := options.get('template_two-lines')):
+    if ';' in course_name and (template_path := options.get('template_two_lines')):
         template_file = ExternalCertificateAsset.get_asset_by_slug(template_path)
         course_name = course_name.replace(';', '\n')
+    else:
+        template_file = ExternalCertificateAsset.get_asset_by_slug(options['template'])
 
     font = _register_font(options)
 
