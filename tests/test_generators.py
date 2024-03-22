@@ -1,4 +1,5 @@
 """This module contains unit tests for the generate_pdf_certificate function."""
+
 from __future__ import annotations
 
 import io
@@ -62,10 +63,11 @@ def test_register_font_with_custom_font(mock_register_font: Mock, mock_font_clas
 
 
 @pytest.mark.parametrize(
-    ("options", "expected"),
+    ("course_name", "options", "expected"),
     [
-        ({}, {}),  # No options - use default coordinates and colors.
+        ('Programming 101', {}, {}),  # No options - use default coordinates and colors.
         (
+            'Programming 101',
             {
                 'name_y': 250,
                 'course_name_y': 200,
@@ -80,10 +82,11 @@ def test_register_font_with_custom_font(mock_register_font: Mock, mock_font_clas
                 'issue_date_color': (245 / 255, 154 / 255, 142 / 255),
             },
         ),  # Custom coordinates and colors.
+        ('Programming\n101\nAdvanced Programming', {}, {}),  # Multiline course name.
     ],
 )
 @patch('openedx_certificates.generators.canvas.Canvas', return_value=Mock(stringWidth=Mock(return_value=10)))
-def test_write_text_on_template(mock_canvas_class: Mock, options: dict[str, int], expected: dict):
+def test_write_text_on_template(mock_canvas_class: Mock, course_name: str, options: dict[str, int], expected: dict):
     """Test the _write_text_on_template function."""
     username = 'John Doe'
     course_name = 'Programming 101'
@@ -123,22 +126,31 @@ def test_write_text_on_template(mock_canvas_class: Mock, options: dict[str, int]
     expected_course_name_color = expected.get('course_name_color', (0, 0, 0))
     expected_issue_date_color = expected.get('issue_date_color', (0, 0, 0))
 
+    # The number of calls to drawString should be 2 (name and issue date) + number of lines in course name.
+    assert canvas_object.drawString.call_count == 3 + course_name.count('\n')
+
     # Check the calls to setFont, setFillColorRGB and drawString methods on Canvas object
     assert canvas_object.setFont.call_args_list[0] == call(font, 32)
     assert canvas_object.setFillColorRGB.call_args_list[0] == call(*expected_name_color)
     assert canvas_object.drawString.call_args_list[0] == call(expected_name_x, expected_name_y, username)
+    assert mock_canvas_class.return_value.stringWidth.mock_calls[0][1] == (username,)
 
     assert canvas_object.setFont.call_args_list[1] == call(font, 28)
     assert canvas_object.setFillColorRGB.call_args_list[1] == call(*expected_course_name_color)
-    assert canvas_object.drawString.call_args_list[1] == call(
-        expected_course_name_x,
-        expected_course_name_y,
-        course_name,
-    )
 
     assert canvas_object.setFont.call_args_list[2] == call(font, 12)
     assert canvas_object.setFillColorRGB.call_args_list[2] == call(*expected_issue_date_color)
-    assert canvas_object.drawString.call_args_list[2] == call(expected_issue_date_x, expected_issue_date_y, test_date)
+
+    for line_number, line in enumerate(course_name.split('\n')):
+        assert mock_canvas_class.return_value.stringWidth.mock_calls[line_number + 1][1] == (line,)
+        assert canvas_object.drawString.mock_calls[1 + line_number][1] == (
+            expected_course_name_x,
+            expected_course_name_y - (line_number * 28 * 1.1),
+            line,
+        )
+
+    assert mock_canvas_class.return_value.stringWidth.mock_calls[-1][1] == (test_date,)
+    assert canvas_object.drawString.mock_calls[-1][1] == (expected_issue_date_x, expected_issue_date_y, test_date)
 
 
 @override_settings(LMS_ROOT_URL="https://example.com", MEDIA_URL="media/")
@@ -205,22 +217,23 @@ def test_save_certificate(mock_contentfile: Mock, mock_token_hex: Mock, storage:
 
 
 @pytest.mark.parametrize(
-    ("course_name", "options", "expected_template_slug"),
+    ("course_name", "options", "expected_template_slug", "expected_course_name"),
     [
         # Default.
-        ('Test Course', {'template': 'template_slug'}, 'template_slug'),
-        # Replace semicolon with newline in course name.
-        ('Test Course;Test Course', {'template': 'template_slug'}, 'template_slug'),
-        # Specify a different template for two-line course names.
+        ('Test Course', {'template': 'template_slug'}, 'template_slug', 'Test Course'),
+        # Specify a different template for two-line course names and replace semicolon with newline in course name.
         (
-            'Test Course;Test Course',
-            {'template': 'template_slug', 'template_two-lines': 'template_two_lines_slug'},
+            'Test Course; Test Course',
+            {'template': 'template_slug', 'template_two_lines': 'template_two_lines_slug'},
             'template_two_lines_slug',
+            'Test Course\n Test Course',
         ),
+        # Do not replace semicolon with newline when the `template_two_lines` option is not specified.
+        ('Test Course; Test Course', {'template': 'template_slug'}, 'template_slug', 'Test Course; Test Course'),
         # Override course name.
-        ('Test Course', {'template': 'template_slug', 'course_name': 'Override'}, 'template_slug'),
+        ('Test Course', {'template': 'template_slug', 'course_name': 'Override'}, 'template_slug', 'Override'),
         # Ignore empty course name override.
-        ('Test Course', {'template': 'template_slug', 'course_name': ''}, 'template_slug'),
+        ('Test Course', {'template': 'template_slug', 'course_name': ''}, 'template_slug', 'Test Course'),
     ],
 )
 @patch(
@@ -256,6 +269,7 @@ def test_generate_pdf_certificate(  # noqa: PLR0913
     course_name: str,
     options: dict[str, str],
     expected_template_slug: str,
+    expected_course_name: str,
 ):
     """Test the generate_pdf_certificate function."""
     course_id = CourseKey.from_string('course-v1:edX+DemoX+Demo_Course')
@@ -272,7 +286,12 @@ def test_generate_pdf_certificate(  # noqa: PLR0913
     else:
         mock_get_course_name.assert_called_once_with(course_id)
     mock_register_font.assert_called_once_with(options)
-    mock_pdf_reader.assert_called()
-    mock_pdf_writer.assert_called()
+    assert mock_pdf_reader.call_count == 2
+    mock_pdf_writer.assert_called_once_with()
+
     mock_write_text_on_template.assert_called_once()
+    _, args, _kwargs = mock_write_text_on_template.mock_calls[0]
+    assert args[-2] == expected_course_name
+    assert args[-1] == options
+
     mock_save_certificate.assert_called_once()
