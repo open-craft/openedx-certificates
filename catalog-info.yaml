@@ -4,8 +4,8 @@
 apiVersion: backstage.io/v1alpha1
 kind: ""
 metadata:
-  name: 'openedx-certificates'
-  description: "A pluggable service for preparing Open edX certificates."
+  name: openedx-certificates
+  description: A pluggable service for preparing Open edX certificates.
   annotations:
     # (Optional) Annotation keys and values can be whatever you want.
     # We use it in Open edX repos to have a comma-separated list of GitHub user
@@ -21,12 +21,12 @@ spec:
   type: ''
 
   # (Required) Acceptable Lifecycle Values: experimental, production, deprecated
-  lifecycle: 'experimental'
+  lifecycle: experimental
 
   # (Optional) The value can be the name of any known component.
-  subcomponentOf: '<name_of_a_component>'
+  subcomponentOf: <name_of_a_component>
 
   # (Optional) An array of different components or resources.
   dependsOn:
-  - '<component_or_resource>'
-  - '<another_component_or_resource>'
+    - <component_or_resource>
+    - <another_component_or_resource>

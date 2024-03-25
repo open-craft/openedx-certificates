@@ -94,7 +94,4 @@ trim_trailing_whitespace = false
 [COMMIT_EDITMSG]
 max_line_length = 72
 
-[*.rst]
-max_line_length = 79
-
 # f2f02689fced7a2e0c62c2f9803184114dc2ae4b

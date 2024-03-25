@@ -5,14 +5,12 @@ In a real-world use case, apps in this project are installed into other
 Django applications, so these settings will not be used.
 """
 
-from os.path import abspath, dirname, join
+from pathlib import Path
 
 
-def root(*args):
-    """
-    Get the absolute path of the given path relative to the project root.
-    """
-    return join(abspath(dirname(__file__)), *args)
+def root(path: Path) -> Path:
+    """Get the absolute path of the given path relative to the project root."""
+    return Path(__file__).parent.resolve() / path
 
 
 DATABASES = {
@@ -23,7 +21,7 @@ DATABASES = {
         'PASSWORD': '',
         'HOST': '',
         'PORT': '',
-    }
+    },
 }
 
 INSTALLED_APPS = (
@@ -32,16 +30,25 @@ INSTALLED_APPS = (
     'django.contrib.contenttypes',
     'django.contrib.messages',
     'django.contrib.sessions',
+    'completion',
+    'completion_aggregator',
+    'django_celery_beat',
     'openedx_certificates',
+    'django_object_actions',
 )
 
+MIGRATION_MODULES = {
+    # the module 'third_party_app' is the one you want to skip
+    'completion_aggregator': None,
+}
+
 LOCALE_PATHS = [
-    root('openedx_certificates', 'conf', 'locale'),
+    root(Path('openedx_certificates/conf/locale')),
 ]
 
 ROOT_URLCONF = 'openedx_certificates.urls'
 
-SECRET_KEY = 'insecure-secret-key'
+SECRET_KEY = 'insecure-secret-key'  # noqa: S105
 
 MIDDLEWARE = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -57,7 +64,12 @@ TEMPLATES = [
             'context_processors': [
                 'django.contrib.auth.context_processors.auth',  # this is required for admin
                 'django.contrib.messages.context_processors.messages',  # this is required for admin
+                'django.template.context_processors.request',  # this is required for admin
             ],
         },
-    }
+    },
 ]
+
+TESTING = True
+USE_TZ = True
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
