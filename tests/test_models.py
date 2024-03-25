@@ -8,6 +8,7 @@ from uuid import UUID, uuid4
 import pytest
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
+from django_celery_beat.models import PeriodicTask
 
 from openedx_certificates.exceptions import CertificateGenerationError
 from openedx_certificates.models import (
@@ -18,6 +19,7 @@ from openedx_certificates.models import (
 from test_utils.factories import UserFactory
 
 if TYPE_CHECKING:
+    from django.db.models import Model
     from django.contrib.auth.models import User
     from opaque_keys.edx.keys import CourseKey
 
@@ -101,6 +103,48 @@ class TestExternalCertificateCourseConfiguration:
         assert periodic_task.name == str(self.course_config)
         assert periodic_task.args == f'[{self.course_config.id}]'
         assert periodic_task.task == 'openedx_certificates.tasks.generate_certificates_for_course_task'
+
+    @pytest.mark.django_db()
+    def test_periodic_task_is_deleted_on_deletion(self):
+        """Test that the periodic task is deleted when the configuration is deleted."""
+        self.certificate_type.save()
+        self.course_config.save()
+        assert PeriodicTask.objects.count() == 1
+
+        self.course_config.delete()
+        assert not PeriodicTask.objects.exists()
+
+    @pytest.mark.django_db()
+    def test_periodic_task_deletion_removes_the_configuration(self):
+        """Test that the configuration is deleted when the periodic task is deleted."""
+        self.certificate_type.save()
+        self.course_config.save()
+        assert PeriodicTask.objects.count() == 1
+
+        self.course_config.periodic_task.delete()
+        assert not ExternalCertificateCourseConfiguration.objects.exists()
+
+    @pytest.mark.django_db()
+    @pytest.mark.parametrize(
+        ("deleted_model", "verified_model"),
+        [
+            (ExternalCertificateCourseConfiguration, PeriodicTask),  # `post_delete` signal.
+            (PeriodicTask, ExternalCertificateCourseConfiguration),  # Cascade deletion of the `OneToOneField`.
+        ],
+    )
+    def test_bulk_delete(self, deleted_model: type[Model], verified_model: type[Model]):
+        """Test that the bulk deletion of configurations removes the periodic tasks (and vice versa)."""
+        self.certificate_type.save()
+        self.course_config.save()
+
+        ExternalCertificateCourseConfiguration(
+            course_id="course-v1:TestX+T101+2024",
+            certificate_type=self.certificate_type,
+        ).save()
+        assert PeriodicTask.objects.count() == 2
+
+        deleted_model.objects.all().delete()
+        assert not verified_model.objects.exists()
 
     def test_str_representation(self):
         """Test the string representation of the model."""

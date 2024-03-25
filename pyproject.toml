@@ -88,6 +88,7 @@ target-version = 'py38'
     'ANN205', # missing-return-type-static-method
     'INP001', # implicit-namespace-package
     'SLF001', # private-member-access
+    'RUF018', # assignment-in-assert
 ]
 
 [tool.ruff.flake8-annotations]

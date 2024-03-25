@@ -13,6 +13,8 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.db.models.signals import post_delete
+from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
 from django_celery_beat.models import IntervalSchedule, PeriodicTask
 from edx_ace import Message, Recipient, ace
@@ -229,6 +231,14 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
             #       Perhaps we could even include this in a processor to optimize it.
             if user.is_active and user.has_usable_password():
                 certificate.send_email()
+
+
+# noinspection PyUnusedLocal
+@receiver(post_delete, sender=ExternalCertificateCourseConfiguration)
+def post_delete_periodic_task(sender, instance, *_args, **_kwargs):  # noqa: ANN001, ARG001
+    """Delete the associated periodic task when the object is deleted."""
+    if instance.periodic_task:
+        instance.periodic_task.delete()
 
 
 class ExternalCertificate(TimeStampedModel):
