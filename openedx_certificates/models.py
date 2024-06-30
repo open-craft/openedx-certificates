@@ -176,7 +176,7 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
         custom_options = {**self.certificate_type.custom_options, **self.custom_options}
         return func(self.course_id, custom_options)
 
-    def generate_certificate_for_user(self, user_id: int, celery_task_id: int = 0):
+    def generate_certificate_for_user(self, user_id: int, celery_task_id: int = 0) -> str | None:
         """
         Celery task for processing a single user's certificate.
 
@@ -187,23 +187,38 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
         Args:
             user_id: The ID of the user to process the certificate for.
             celery_task_id (optional): The ID of the Celery task that is running this function.
+
+        Returns:
+            The UUID of the generated certificate.
         """
         user = get_user_model().objects.get(id=user_id)
         # Use the name from the profile if it is not empty. Otherwise, use the first and last name.
         # We check if the profile exists because it may not exist in some cases (e.g., when a User is created manually).
         user_full_name = getattr(getattr(user, 'profile', None), 'name', f"{user.first_name} {user.last_name}")
+        course_name = get_course_name(self.course_id)
         custom_options = {**self.certificate_type.custom_options, **self.custom_options}
 
-        certificate, _ = ExternalCertificate.objects.update_or_create(
-            user_id=user_id,
-            course_id=self.course_id,
-            certificate_type=self.certificate_type.name,
-            defaults={
-                'user_full_name': user_full_name,
-                'status': ExternalCertificate.Status.GENERATING,
-                'generation_task_id': celery_task_id,
-            },
-        )
+        try:
+            certificate = ExternalCertificate.objects.exclude(status=ExternalCertificate.Status.INVALIDATED).get(
+                user_id=user_id,
+                course_id=self.course_id,
+                certificate_type=self.certificate_type.name,
+            )
+            certificate.user_full_name = user_full_name
+            certificate.course_name = course_name
+            certificate.status = ExternalCertificate.Status.GENERATING
+            certificate.generation_task_id = celery_task_id
+            certificate.save()
+        except ExternalCertificate.DoesNotExist:
+            certificate = ExternalCertificate.objects.create(
+                user_id=user_id,
+                user_full_name=user_full_name,
+                course_id=self.course_id,
+                course_name=course_name,
+                certificate_type=self.certificate_type.name,
+                status=ExternalCertificate.Status.GENERATING,
+                generation_task_id=celery_task_id,
+            )
 
         try:
             generation_module_name, generation_func_name = self.certificate_type.generation_func.rsplit('.', 1)
@@ -224,6 +239,7 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
             #       Perhaps we could even include this in a processor to optimize it.
             if user.is_active and user.has_usable_password():
                 certificate.send_email()
+            return certificate.uuid
 
 
 # noinspection PyUnusedLocal
@@ -266,6 +282,7 @@ class ExternalCertificate(TimeStampedModel):
     user_id = models.IntegerField(help_text=_('ID of the user receiving the certificate'))
     user_full_name = models.CharField(max_length=255, help_text=_('User receiving the certificate'))
     course_id = CourseKeyField(max_length=255, help_text=_('ID of a course for which the certificate was issued'))
+    course_name = models.CharField(max_length=255, help_text=_('Course name for which the certificate was issued'))
     certificate_type = models.CharField(max_length=255, help_text=_('Type of the certificate'))
     status = models.CharField(
         max_length=32,
@@ -276,12 +293,35 @@ class ExternalCertificate(TimeStampedModel):
     download_url = models.URLField(blank=True, help_text=_('URL of the generated certificate PDF (e.g., to S3)'))
     legacy_id = models.IntegerField(null=True, help_text=_('Legacy ID of the certificate imported from another system'))
     generation_task_id = models.CharField(max_length=255, help_text=_('Task ID from the Celery queue'))
-
-    class Meta:  # noqa: D106
-        unique_together = (('user_id', 'course_id', 'certificate_type'),)
+    invalidation_reason = models.TextField(
+        blank=True,
+        help_text=_('Reason for invalidating the certificate. If set, the certificate is invalidated.'),
+    )
 
     def __str__(self):  # noqa: D105
         return f"{self.certificate_type} for {self.user_full_name} in {self.course_id}"
+
+    def save(self, *args, **kwargs):
+        """Invalidate the certificate if the `invalidation_reason` is set."""
+        if self.invalidation_reason:
+            self.status = ExternalCertificate.Status.INVALIDATED
+        elif self.status == ExternalCertificate.Status.INVALIDATED:
+            if (
+                certificate := ExternalCertificate.objects.exclude(status=ExternalCertificate.Status.INVALIDATED)
+                .filter(
+                    user_id=self.user_id,
+                    course_id=self.course_id,
+                    certificate_type=self.certificate_type,
+                    status=ExternalCertificate.Status.AVAILABLE,
+                )
+                .first()
+            ):
+                msg = f"You cannot remove the invalidation reason when a valid certificate exists ({certificate.uuid})."
+                raise ValidationError(msg)
+
+            self.status = ExternalCertificate.Status.AVAILABLE
+
+        super().save(*args, **kwargs)
 
     def send_email(self):
         """Send a certificate link to the student."""
@@ -299,6 +339,23 @@ class ExternalCertificate(TimeStampedModel):
             },
         )
         ace.send(msg)
+
+    def reissue_certificate(self):
+        """Handle the reissuing of the certificate."""
+        certificate_config = ExternalCertificateCourseConfiguration.objects.get(
+            course_id=self.course_id,
+            certificate_type__name=self.certificate_type,
+        )
+
+        if self.invalidation_reason:
+            self.invalidation_reason += "\n"
+
+        self.invalidation_reason += "The certificate was reissued."
+        self.save()
+
+        if new_uuid := certificate_config.generate_certificate_for_user(self.user_id):
+            self.invalidation_reason += f" The new certificate ID is {new_uuid}."
+            self.save()
 
 
 class ExternalCertificateAsset(TimeStampedModel):

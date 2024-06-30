@@ -1,0 +1,41 @@
+.certificate-validation-container {
+    /* Center the container horizontally.
+       With margin auto and a specified width,
+       the browser will automatically give equal margins on the two sides. */
+    width: 75%; /* Or your preferred width */
+    margin: 0 auto;
+}
+
+.certificate-validation-container #validationResults table {
+    /* Add styling to the table. */
+    width: 100%; /* Use percentage to make it responsive */
+    border-collapse: collapse; /* Remove gaps between cells */
+}
+
+.certificate-validation-container #validationResults table, #validationResults th, #validationResults td {
+    /* Add borders to cells for visibility */
+    border: 1px solid #ddd;
+    padding: 15px; /* Or your preferred padding */
+    text-align: left; /* Or your preferred alignment */
+}
+
+.certificate-validation-container #validationResults th {
+    /* UNUSED: Differentiate header cells with a background */
+    background-color: #4CAF50; /* Or your preferred color */
+    color: white;
+}
+
+#certificateValidationForm #certificateID {
+    /* Make the field wider, enough to fit a whole UUID */
+    width: 100%;
+}
+
+#certificateValidationForm button[type="submit"] {
+    /* Add some space around the button. */
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+#certificateValidationForm #formError {
+    color: red;
+}
