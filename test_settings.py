@@ -35,6 +35,7 @@ INSTALLED_APPS = (
     'django_celery_beat',
     'openedx_certificates',
     'django_object_actions',
+    'event_routing_backends',
 )
 
 MIGRATION_MODULES = {
@@ -73,3 +74,14 @@ TEMPLATES = [
 TESTING = True
 USE_TZ = True
 DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'loggers': {
+        'event_routing_backends': {
+            'level': 'CRITICAL',
+            'propagate': True,
+        },
+    },
+}

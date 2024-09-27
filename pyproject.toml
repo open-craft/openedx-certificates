@@ -129,7 +129,7 @@ exclude = '''
 [tool.pytest.ini_options]
 filterwarnings = [
     # https://github.com/openedx/completion/pull/259
-    "ignore:'completion' defines default_app_config:django.utils.deprecation.RemovedInDjango41Warning",
+    "ignore:'index_together' is deprecated:django.utils.deprecation.RemovedInDjango51Warning",
     "ignore:pkg_resources is deprecated as an API:DeprecationWarning",
     "ignore:Deprecated call to `pkg_resources.declare_namespace.*sphinxcontrib:DeprecationWarning",
 ]
