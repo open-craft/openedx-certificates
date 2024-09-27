@@ -4,6 +4,7 @@ Proxies and compatibility code for edx-platform features.
 This module moderates access to all edx-platform features allowing for cross-version compatibility code.
 It also simplifies running tests outside edx-platform's environment by stubbing these functions in unit tests.
 """
+
 from __future__ import annotations
 
 from contextlib import contextmanager

@@ -1,4 +1,5 @@
 """Tests for the `openedx-certificates` models."""
+
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
@@ -19,8 +20,8 @@ from openedx_certificates.models import (
 from test_utils.factories import UserFactory
 
 if TYPE_CHECKING:
-    from django.db.models import Model
     from django.contrib.auth.models import User
+    from django.db.models import Model
     from opaque_keys.edx.keys import CourseKey
 
 
@@ -91,7 +92,7 @@ class TestExternalCertificateCourseConfiguration:
             certificate_type=self.certificate_type,
         )
 
-    @pytest.mark.django_db()
+    @pytest.mark.django_db
     def test_periodic_task_is_auto_created(self):
         """Test that a periodic task is automatically created for the new configuration."""
         self.certificate_type.save()
@@ -104,7 +105,7 @@ class TestExternalCertificateCourseConfiguration:
         assert periodic_task.args == f'[{self.course_config.id}]'
         assert periodic_task.task == 'openedx_certificates.tasks.generate_certificates_for_course_task'
 
-    @pytest.mark.django_db()
+    @pytest.mark.django_db
     def test_periodic_task_is_deleted_on_deletion(self):
         """Test that the periodic task is deleted when the configuration is deleted."""
         self.certificate_type.save()
@@ -114,7 +115,7 @@ class TestExternalCertificateCourseConfiguration:
         self.course_config.delete()
         assert not PeriodicTask.objects.exists()
 
-    @pytest.mark.django_db()
+    @pytest.mark.django_db
     def test_periodic_task_deletion_removes_the_configuration(self):
         """Test that the configuration is deleted when the periodic task is deleted."""
         self.certificate_type.save()
@@ -124,7 +125,7 @@ class TestExternalCertificateCourseConfiguration:
         self.course_config.periodic_task.delete()
         assert not ExternalCertificateCourseConfiguration.objects.exists()
 
-    @pytest.mark.django_db()
+    @pytest.mark.django_db
     @pytest.mark.parametrize(
         ("deleted_model", "verified_model"),
         [
@@ -155,7 +156,7 @@ class TestExternalCertificateCourseConfiguration:
         eligible_user_ids = self.course_config.get_eligible_user_ids()
         assert eligible_user_ids == [1, 2, 3]
 
-    @pytest.mark.django_db()
+    @pytest.mark.django_db
     def test_filter_out_user_ids_with_certificates(self):
         """Test the filter_out_user_ids_with_certificates method."""
         self.certificate_type.save()
@@ -200,7 +201,7 @@ class TestExternalCertificateCourseConfiguration:
         filtered_users = self.course_config.filter_out_user_ids_with_certificates([1, 2, 3, 4, 6])
         assert filtered_users == [3, 6]
 
-    @pytest.mark.django_db()
+    @pytest.mark.django_db
     @patch.object(ExternalCertificate, 'send_email')
     def test_generate_certificate_for_user(self, mock_send_email: Mock):
         """Test the generate_certificate_for_user method."""
@@ -236,7 +237,7 @@ class TestExternalCertificateCourseConfiguration:
         assert ExternalCertificate.objects.filter(course_id=self.course_config.course_id).count() == 3
         mock_send_email.assert_called_once()
 
-    @pytest.mark.django_db()
+    @pytest.mark.django_db
     @patch.object(ExternalCertificate, 'send_email')
     def test_generate_certificate_for_user_update_existing(self, mock_send_email: Mock):
         """Test the generate_certificate_for_user method updates an existing certificate."""
@@ -264,7 +265,7 @@ class TestExternalCertificateCourseConfiguration:
         ).exists()
         mock_send_email.assert_called_once()
 
-    @pytest.mark.django_db()
+    @pytest.mark.django_db
     @patch('openedx_certificates.models.import_module')
     def test_generate_certificate_for_user_with_exception(self, mock_module: Mock):
         """Test the generate_certificate_for_user handles the case when the generation function raises an exception."""
@@ -313,7 +314,7 @@ class TestExternalCertificate:
         """Test the string representation of a certificate."""
         assert str(self.certificate) == 'Test Type for Test User in course-v1:TestX+T101+2023'
 
-    @pytest.mark.django_db()
+    @pytest.mark.django_db
     def test_unique_together_constraint(self):
         """Test that the unique_together constraint is enforced."""
         self.certificate.save()

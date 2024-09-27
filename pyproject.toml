@@ -6,6 +6,9 @@ plugins = ['django_coverage_plugin']
 [tool.ruff]
 line-length = 120
 exclude = ['migrations', 'docs', 'manage.py']
+target-version = 'py38'
+
+[tool.ruff.lint]
 select = [
     'F',    # Pyflakes
     'E',    # Pycodestyle (errors)
@@ -18,14 +21,12 @@ select = [
     'YTT',  # flake8-2020
     'ANN',  # flake8-annotations
     'ASYNC',# flake8-async
-    # 'TRIO', # flake8-trio
     'S',    # flake8-bandit
     'BLE',  # flake8-blind-except
     'FBT',  # flake8-boolean-trap
     'B',    # flake8-bugbear
     'A',    # flake8-builtins
     'COM',  # flake8-commas
-    # 'CPY',  # flake8-copyright
     'C4',   # flake8-comprehensions
     'DTZ',  # flake8-datetimez
     'T10',  # flake8-debugger
@@ -35,6 +36,7 @@ select = [
     'FA',   # flake8-future-annotations
     'ISC',  # flake8-implicit-str-concat
     'ICN',  # flake8-import-conventions
+    'LOG',  # flake8-logging
     'G',    # flake8-logging-format
     'INP',  # flake8-no-pep420
     'PIE',  # flake8-pie
@@ -53,7 +55,6 @@ select = [
     'ARG',  # flake8-unused-arguments
     'PTH',  # flake8-use-pathlib
     'TD',   # flake8-todos
-    # 'FIX',  # flake8-fixme
     'ERA',  # eradicate
     'PD',   # pandas-vet
     'PGH',  # pygrep-hooks
@@ -63,8 +64,9 @@ select = [
     'NPY',  # NumPy-specific rules
     'AIR',  # Airflow
     'PERF', # Perflint
-    # 'FURB', # refurb
-    # 'LOG',  # flake8-logging
+    'FURB', # refurb
+    # TODO: Enable preview.
+    # 'DOC',  # pydoclint
     'RUF',  # Ruff-specific rules
 ]
 ignore = [
@@ -80,31 +82,22 @@ ignore = [
     'TD003',  # missing-t\odo-link
     'TRY003', # raise-vanilla-args
 ]
-target-version = 'py38'
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 'tests/*' = [
     'S101',   # assert
-    'ANN205', # missing-return-type-static-method
     'INP001', # implicit-namespace-package
     'SLF001', # private-member-access
     'RUF018', # assignment-in-assert
 ]
 
-[tool.ruff.flake8-annotations]
+[tool.ruff.lint.flake8-annotations]
 suppress-none-returning = true
 
-[tool.ruff.flake8-builtins]
-builtins-ignorelist = ['list']
-
-# Consider instead of Q000.
-#[tool.ruff.flake8-quotes]
-#inline-quotes = 'single'
-
-[tool.ruff.pydocstyle]
+[tool.ruff.lint.pydocstyle]
 convention = "google"
 
-[tool.ruff.pylint]
+[tool.ruff.lint.pylint]
 allow-magic-value-types = ['int', 'str']
 
 [tool.black]

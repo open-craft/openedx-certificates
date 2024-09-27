@@ -21,7 +21,7 @@ def get_version(file_path: Path) -> str:
     filename = Path(__file__).parent / file_path
     with Path(filename).open(encoding="utf8") as f:
         version_file = f.read()
-        version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", version_file, re.M)
+        version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", version_file, re.MULTILINE)
     if version_match:
         return version_match.group(1)
     raise RuntimeError('Unable to find version string.')  # noqa: EM101
@@ -77,12 +77,12 @@ def load_requirements(*requirements_paths: Path) -> list[str]:  # noqa: C901
             package = regex_match.group(1)
             version_constraints = regex_match.group(2)
             check_name_consistent(package)
-            existing_version_constraints = current_requirements.get(package, None)
+            existing_version_constraints = current_requirements.get(package)
             # It's fine to add constraints to an unconstrained package,
             # but raise an error if there are already constraints in place.
             if existing_version_constraints and existing_version_constraints != version_constraints:
                 # noinspection PyExceptionInherit
-                raise BaseException(
+                raise BaseException(  # noqa: TRY002
                     f'Multiple constraint definitions found for {package}:'  # noqa: EM102
                     f' "{existing_version_constraints}" and "{version_constraints}".'
                     f'Combine constraints into one location with {package}'
