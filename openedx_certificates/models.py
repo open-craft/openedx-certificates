@@ -1,4 +1,5 @@
 """Database models for openedx_certificates."""
+
 from __future__ import annotations
 
 import json
@@ -212,7 +213,7 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
             certificate.download_url = generation_func(self.course_id, user, certificate.uuid, custom_options)
             certificate.status = ExternalCertificate.Status.AVAILABLE
             certificate.save()
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             certificate.status = ExternalCertificate.Status.ERROR
             certificate.save()
             msg = f'Failed to generate the {certificate.uuid=} for {user_id=} with {self.id=}.'

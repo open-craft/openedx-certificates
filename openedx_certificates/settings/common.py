@@ -1,4 +1,5 @@
 """App-specific settings for all environments."""
+
 from django.conf import Settings
 
 

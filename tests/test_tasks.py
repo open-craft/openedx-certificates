@@ -11,7 +11,7 @@ from openedx_certificates.tasks import (
 )
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 def test_generate_certificate_for_user():
     """Test if the `generate_certificate_for_user` method is called with correct parameters."""
     course_config_id = 123
@@ -34,7 +34,7 @@ def test_generate_certificate_for_user():
         mock_config.generate_certificate_for_user.assert_called_once_with(user_id, task_id)
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 def test_generate_certificates_for_course_with_filtering():
     """Test if `generate_certificate_for_user_task.delay` is called for each filtered eligible user."""
     course_config_id = 123
@@ -59,7 +59,7 @@ def test_generate_certificates_for_course_with_filtering():
             mock_delay.assert_any_call(course_config_id, user_id)
 
 
-@pytest.mark.django_db()
+@pytest.mark.django_db
 def test_generate_all_certificates():
     """Test if `generate_certificates_for_course_task.delay` is called for each enabled configuration."""
     config_ids = [101, 102, 103]
