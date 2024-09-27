@@ -192,25 +192,16 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
         user_full_name = getattr(getattr(user, 'profile', None), 'name', f"{user.first_name} {user.last_name}")
         custom_options = {**self.certificate_type.custom_options, **self.custom_options}
 
-        try:
-            certificate = ExternalCertificate.objects.get(
-                user_id=user_id,
-                course_id=self.course_id,
-                certificate_type=self.certificate_type.name,
-            )
-            certificate.user_full_name = user_full_name
-            certificate.status = ExternalCertificate.Status.GENERATING
-            certificate.generation_task_id = celery_task_id
-            certificate.save()
-        except ExternalCertificate.DoesNotExist:
-            certificate = ExternalCertificate.objects.create(
-                user_id=user_id,
-                user_full_name=user_full_name,
-                course_id=self.course_id,
-                certificate_type=self.certificate_type.name,
-                status=ExternalCertificate.Status.GENERATING,
-                generation_task_id=celery_task_id,
-            )
+        certificate, _ = ExternalCertificate.objects.update_or_create(
+            user_id=user_id,
+            course_id=self.course_id,
+            certificate_type=self.certificate_type.name,
+            defaults={
+                'user_full_name': user_full_name,
+                'status': ExternalCertificate.Status.GENERATING,
+                'generation_task_id': celery_task_id,
+            },
+        )
 
         try:
             generation_module_name, generation_func_name = self.certificate_type.generation_func.rsplit('.', 1)
