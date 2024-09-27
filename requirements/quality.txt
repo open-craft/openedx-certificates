@@ -8,44 +8,66 @@ amqp==5.2.0
     # via
     #   -r requirements/test.txt
     #   kombu
+aniso8601==9.0.1
+    # via
+    #   -r requirements/test.txt
+    #   tincan
+apache-libcloud==3.8.0
+    # via
+    #   -r requirements/test.txt
+    #   edx-event-routing-backends
 appdirs==1.4.4
     # via
     #   -r requirements/test.txt
     #   fs
-asgiref==3.7.2
+asgiref==3.8.1
     # via
     #   -r requirements/test.txt
     #   django
-attrs==23.2.0
+async-timeout==4.0.3
+    # via
+    #   -r requirements/test.txt
+    #   redis
+attrs==24.2.0
     # via
     #   -r requirements/test.txt
     #   edx-ace
+    #   openedx-events
 backports-zoneinfo[tzdata]==0.2.1
     # via
     #   -r requirements/test.txt
-    #   backports-zoneinfo
     #   celery
+    #   django
     #   django-celery-beat
     #   django-timezone-field
+    #   djangorestframework
     #   kombu
-billiard==4.2.0
+billiard==4.2.1
     # via
     #   -r requirements/test.txt
     #   celery
-black==23.12.1
+black==24.8.0
     # via -r requirements/quality.in
-celery==5.3.6
+cachecontrol==0.14.0
+    # via
+    #   -r requirements/test.txt
+    #   firebase-admin
+cachetools==5.5.0
+    # via
+    #   -r requirements/test.txt
+    #   google-auth
+celery==5.4.0
     # via
     #   -r requirements/test.txt
     #   django-celery-beat
     #   edx-celeryutils
     #   event-tracking
     #   openedx-completion-aggregator
-certifi==2023.11.17
+certifi==2024.8.30
     # via
     #   -r requirements/test.txt
     #   requests
-cffi==1.16.0
+cffi==1.17.1
     # via
     #   -r requirements/test.txt
     #   cryptography
@@ -68,7 +90,7 @@ click==8.1.7
     #   click-repl
     #   code-annotations
     #   edx-django-utils
-click-didyoumean==0.3.0
+click-didyoumean==0.3.1
     # via
     #   -r requirements/test.txt
     #   celery
@@ -80,34 +102,38 @@ click-repl==0.3.0
     # via
     #   -r requirements/test.txt
     #   celery
-code-annotations==1.5.0
+code-annotations==1.8.0
     # via
     #   -r requirements/test.txt
     #   edx-toggles
-coverage[toml]==7.4.0
+coverage[toml]==7.6.1
     # via
     #   -r requirements/test.txt
-    #   coverage
     #   django-coverage-plugin
     #   pytest-cov
-cron-descriptor==1.4.0
+cron-descriptor==1.4.5
     # via
     #   -r requirements/test.txt
     #   django-celery-beat
-cryptography==41.0.7
+cryptography==43.0.1
     # via
     #   -r requirements/test.txt
+    #   django-fernet-fields-v2
     #   pyjwt
 dj-inmemorystorage==2.1.0
     # via -r requirements/test.txt
-django==3.2.23
+django==4.2.16
     # via
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/test.txt
     #   dj-inmemorystorage
     #   django-celery-beat
+    #   django-config-models
     #   django-crum
+    #   django-fernet-fields-v2
     #   django-model-utils
+    #   django-push-notifications
+    #   django-redis
     #   django-timezone-field
     #   django-waffle
     #   djangorestframework
@@ -117,12 +143,19 @@ django==3.2.23
     #   edx-completion
     #   edx-django-utils
     #   edx-drf-extensions
+    #   edx-event-routing-backends
     #   edx-toggles
     #   event-tracking
     #   jsonfield
     #   openedx-completion-aggregator
-django-celery-beat==2.5.0
+    #   openedx-events
+    #   openedx-filters
+django-celery-beat==2.7.0
     # via -r requirements/test.txt
+django-config-models==2.7.0
+    # via
+    #   -r requirements/test.txt
+    #   edx-event-routing-backends
 django-coverage-plugin==3.1.0
     # via -r requirements/test.txt
 django-crum==0.7.9
@@ -130,17 +163,29 @@ django-crum==0.7.9
     #   -r requirements/test.txt
     #   edx-django-utils
     #   edx-toggles
-django-model-utils==4.3.1
+django-fernet-fields-v2==0.9
+    # via
+    #   -r requirements/test.txt
+    #   edx-event-routing-backends
+django-model-utils==5.0.0
     # via
     #   -r requirements/test.txt
     #   edx-celeryutils
     #   edx-completion
     #   openedx-completion-aggregator
-django-object-actions==4.2.0
+django-object-actions==4.3.0
     # via -r requirements/test.txt
+django-push-notifications==3.1.0
+    # via
+    #   -r requirements/test.txt
+    #   edx-ace
+django-redis==5.4.0
+    # via
+    #   -r requirements/test.txt
+    #   edx-event-routing-backends
 django-reverse-admin==2.9.6
     # via -r requirements/test.txt
-django-timezone-field==6.1.0
+django-timezone-field==7.0
     # via
     #   -r requirements/test.txt
     #   django-celery-beat
@@ -150,9 +195,10 @@ django-waffle==4.1.0
     #   edx-django-utils
     #   edx-drf-extensions
     #   edx-toggles
-djangorestframework==3.14.0
+djangorestframework==3.15.2
     # via
     #   -r requirements/test.txt
+    #   django-config-models
     #   drf-jwt
     #   edx-completion
     #   edx-drf-extensions
@@ -161,56 +207,153 @@ drf-jwt==1.19.2
     # via
     #   -r requirements/test.txt
     #   edx-drf-extensions
-edx-ace==1.7.0
+edx-ace==1.11.2
     # via -r requirements/test.txt
-edx-celeryutils==1.2.3
+edx-ccx-keys==1.3.0
+    # via
+    #   -r requirements/test.txt
+    #   openedx-events
+edx-celeryutils==1.3.0
+    # via
+    #   -r requirements/test.txt
+    #   edx-event-routing-backends
+    #   openedx-completion-aggregator
+edx-completion==4.7.1
     # via
     #   -r requirements/test.txt
     #   openedx-completion-aggregator
-edx-completion==4.4.0
+edx-django-utils==5.15.0
     # via
     #   -r requirements/test.txt
-    #   openedx-completion-aggregator
-edx-django-utils==5.9.0
-    # via
-    #   -r requirements/test.txt
+    #   django-config-models
+    #   edx-ace
     #   edx-drf-extensions
     #   edx-toggles
     #   event-tracking
-edx-drf-extensions==9.1.2
+    #   openedx-events
+edx-drf-extensions==10.4.0
     # via
     #   -r requirements/test.txt
     #   edx-completion
-edx-opaque-keys==2.5.1
+edx-event-routing-backends==9.3.0
     # via
     #   -r requirements/test.txt
+    #   openedx-completion-aggregator
+edx-opaque-keys[django]==2.11.0
+    # via
+    #   -r requirements/test.txt
+    #   edx-ccx-keys
     #   edx-completion
     #   edx-drf-extensions
     #   openedx-completion-aggregator
-edx-toggles==5.1.0
+    #   openedx-events
+edx-toggles==5.2.0
     # via
     #   -r requirements/test.txt
     #   edx-completion
+    #   edx-event-routing-backends
+    #   event-tracking
     #   openedx-completion-aggregator
-event-tracking==2.2.0
+event-tracking==2.4.0
     # via
+    #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/test.txt
     #   edx-completion
-exceptiongroup==1.2.0
+    #   edx-event-routing-backends
+    #   openedx-completion-aggregator
+exceptiongroup==1.2.2
     # via
     #   -r requirements/test.txt
     #   pytest
-factory-boy==3.3.0
+factory-boy==3.3.1
     # via -r requirements/test.txt
-faker==22.1.0
+faker==30.0.0
     # via
     #   -r requirements/test.txt
     #   factory-boy
+fastavro==1.9.7
+    # via
+    #   -r requirements/test.txt
+    #   openedx-events
+fasteners==0.19
+    # via
+    #   -r requirements/test.txt
+    #   edx-event-routing-backends
+firebase-admin==6.5.0
+    # via
+    #   -r requirements/test.txt
+    #   edx-ace
 fs==2.4.16
     # via
     #   -r requirements/test.txt
     #   xblock
-idna==3.6
+google-api-core[grpc]==2.20.0
+    # via
+    #   -r requirements/test.txt
+    #   firebase-admin
+    #   google-api-python-client
+    #   google-cloud-core
+    #   google-cloud-firestore
+    #   google-cloud-storage
+google-api-python-client==2.147.0
+    # via
+    #   -r requirements/test.txt
+    #   firebase-admin
+google-auth==2.35.0
+    # via
+    #   -r requirements/test.txt
+    #   google-api-core
+    #   google-api-python-client
+    #   google-auth-httplib2
+    #   google-cloud-core
+    #   google-cloud-firestore
+    #   google-cloud-storage
+google-auth-httplib2==0.2.0
+    # via
+    #   -r requirements/test.txt
+    #   google-api-python-client
+google-cloud-core==2.4.1
+    # via
+    #   -r requirements/test.txt
+    #   google-cloud-firestore
+    #   google-cloud-storage
+google-cloud-firestore==2.19.0
+    # via
+    #   -r requirements/test.txt
+    #   firebase-admin
+google-cloud-storage==2.18.2
+    # via
+    #   -r requirements/test.txt
+    #   firebase-admin
+google-crc32c==1.5.0
+    # via
+    #   -r requirements/test.txt
+    #   google-cloud-storage
+    #   google-resumable-media
+google-resumable-media==2.7.2
+    # via
+    #   -r requirements/test.txt
+    #   google-cloud-storage
+googleapis-common-protos==1.65.0
+    # via
+    #   -r requirements/test.txt
+    #   google-api-core
+    #   grpcio-status
+grpcio==1.66.1
+    # via
+    #   -r requirements/test.txt
+    #   google-api-core
+    #   grpcio-status
+grpcio-status==1.66.1
+    # via
+    #   -r requirements/test.txt
+    #   google-api-core
+httplib2==0.22.0
+    # via
+    #   -r requirements/test.txt
+    #   google-api-python-client
+    #   google-auth-httplib2
+idna==3.10
     # via
     #   -r requirements/test.txt
     #   requests
@@ -218,7 +361,11 @@ iniconfig==2.0.0
     # via
     #   -r requirements/test.txt
     #   pytest
-jinja2==3.1.2
+isodate==0.6.1
+    # via
+    #   -r requirements/test.txt
+    #   edx-event-routing-backends
+jinja2==3.1.4
     # via
     #   -r requirements/test.txt
     #   code-annotations
@@ -226,33 +373,46 @@ jsonfield==3.1.0
     # via
     #   -r requirements/test.txt
     #   edx-celeryutils
-kombu==5.3.4
+    #   edx-event-routing-backends
+kombu==5.4.2
     # via
     #   -r requirements/test.txt
     #   celery
-lxml==5.1.0
+lxml==5.3.0
     # via
     #   -r requirements/test.txt
     #   xblock
-mako==1.3.0
+mako==1.3.5
     # via
     #   -r requirements/test.txt
     #   xblock
-markupsafe==2.1.3
+markupsafe==2.1.5
     # via
     #   -r requirements/test.txt
     #   jinja2
     #   mako
     #   xblock
+msgpack==1.1.0
+    # via
+    #   -r requirements/test.txt
+    #   cachecontrol
 mypy-extensions==1.0.0
     # via black
-newrelic==9.4.0
+newrelic==10.0.0
     # via
     #   -r requirements/test.txt
     #   edx-django-utils
-openedx-completion-aggregator==4.0.3
+openedx-completion-aggregator==4.2.0
     # via -r requirements/test.txt
-packaging==23.2
+openedx-events==9.14.1
+    # via
+    #   -r requirements/test.txt
+    #   event-tracking
+openedx-filters==1.9.0
+    # via
+    #   -r requirements/test.txt
+    #   edx-event-routing-backends
+packaging==24.1
     # via
     #   -r requirements/test.txt
     #   black
@@ -261,11 +421,11 @@ pathspec==0.12.1
     # via
     #   black
     #   yamllint
-pbr==6.0.0
+pbr==6.1.0
     # via
     #   -r requirements/test.txt
     #   stevedore
-pillow==10.2.0
+pillow==10.4.0
     # via
     #   -r requirements/test.txt
     #   reportlab
@@ -273,28 +433,50 @@ platformdirs==3.11.0
     # via
     #   -c requirements/constraints.txt
     #   black
-pluggy==1.3.0
+pluggy==1.5.0
     # via
     #   -r requirements/test.txt
     #   pytest
-prompt-toolkit==3.0.43
+prompt-toolkit==3.0.48
     # via
     #   -r requirements/test.txt
     #   click-repl
-psutil==5.9.7
+proto-plus==1.24.0
+    # via
+    #   -r requirements/test.txt
+    #   google-api-core
+    #   google-cloud-firestore
+protobuf==5.28.2
+    # via
+    #   -r requirements/test.txt
+    #   google-api-core
+    #   google-cloud-firestore
+    #   googleapis-common-protos
+    #   grpcio-status
+    #   proto-plus
+psutil==6.0.0
     # via
     #   -r requirements/test.txt
     #   edx-django-utils
-pycparser==2.21
+pyasn1==0.6.1
+    # via
+    #   -r requirements/test.txt
+    #   pyasn1-modules
+    #   rsa
+pyasn1-modules==0.4.1
+    # via
+    #   -r requirements/test.txt
+    #   google-auth
+pycparser==2.22
     # via
     #   -r requirements/test.txt
     #   cffi
-pyjwt[crypto]==2.8.0
+pyjwt[crypto]==2.9.0
     # via
     #   -r requirements/test.txt
     #   drf-jwt
     #   edx-drf-extensions
-    #   pyjwt
+    #   firebase-admin
 pymongo==3.13.0
     # via
     #   -r requirements/test.txt
@@ -304,55 +486,73 @@ pynacl==1.5.0
     # via
     #   -r requirements/test.txt
     #   edx-django-utils
-pypdf==3.17.4
+pyparsing==3.1.4
+    # via
+    #   -r requirements/test.txt
+    #   httplib2
+pypdf==5.0.0
     # via -r requirements/test.txt
-pytest==7.4.4
+pytest==8.3.3
     # via
     #   -r requirements/test.txt
     #   pytest-cov
     #   pytest-django
-pytest-cov==4.1.0
+pytest-cov==5.0.0
     # via -r requirements/test.txt
-pytest-django==4.7.0
+pytest-django==4.9.0
     # via -r requirements/test.txt
-python-crontab==3.0.0
+python-crontab==3.2.0
     # via
     #   -r requirements/test.txt
     #   django-celery-beat
-python-dateutil==2.8.2
+python-dateutil==2.9.0.post0
     # via
     #   -r requirements/test.txt
     #   celery
     #   edx-ace
+    #   edx-event-routing-backends
     #   faker
     #   python-crontab
     #   xblock
-python-slugify==8.0.1
+python-slugify==8.0.4
     # via
     #   -r requirements/test.txt
     #   code-annotations
-pytz==2023.3.post1
+pytz==2024.2
     # via
     #   -r requirements/test.txt
-    #   django
-    #   djangorestframework
     #   edx-completion
+    #   edx-event-routing-backends
     #   event-tracking
+    #   tincan
     #   xblock
-pyyaml==6.0.1
+pyyaml==6.0.2
     # via
     #   -r requirements/test.txt
     #   code-annotations
     #   xblock
     #   yamllint
-reportlab==4.0.9
-    # via -r requirements/test.txt
-requests==2.31.0
+redis==5.1.0
     # via
     #   -r requirements/test.txt
+    #   django-redis
+reportlab==4.2.4
+    # via -r requirements/test.txt
+requests==2.32.3
+    # via
+    #   -r requirements/test.txt
+    #   apache-libcloud
+    #   cachecontrol
     #   edx-drf-extensions
+    #   edx-event-routing-backends
+    #   google-api-core
+    #   google-cloud-storage
     #   sailthru-client
-ruff==0.1.11
+rsa==4.9
+    # via
+    #   -r requirements/test.txt
+    #   google-auth
+ruff==0.6.8
     # via -r requirements/quality.in
 sailthru-client==2.2.3
     # via
@@ -362,7 +562,7 @@ semantic-version==2.10.0
     # via
     #   -r requirements/test.txt
     #   edx-drf-extensions
-simplejson==3.19.2
+simplejson==3.19.3
     # via
     #   -r requirements/test.txt
     #   sailthru-client
@@ -372,15 +572,17 @@ six==1.16.0
     #   -r requirements/test.txt
     #   dj-inmemorystorage
     #   edx-ace
+    #   edx-ccx-keys
     #   event-tracking
     #   fs
+    #   isodate
     #   openedx-completion-aggregator
     #   python-dateutil
-sqlparse==0.4.4
+sqlparse==0.5.1
     # via
     #   -r requirements/test.txt
     #   django
-stevedore==5.1.0
+stevedore==5.3.0
     # via
     #   -r requirements/test.txt
     #   code-annotations
@@ -391,28 +593,35 @@ text-unidecode==1.3
     # via
     #   -r requirements/test.txt
     #   python-slugify
+tincan==1.0.0
+    # via
+    #   -r requirements/test.txt
+    #   edx-event-routing-backends
 tomli==2.0.1
     # via
     #   -r requirements/test.txt
     #   black
     #   coverage
     #   pytest
-typing-extensions==4.9.0
+typing-extensions==4.12.2
     # via
     #   -r requirements/test.txt
     #   asgiref
     #   black
     #   edx-opaque-keys
-    #   faker
     #   kombu
     #   pypdf
-tzdata==2023.4
+tzdata==2024.2
     # via
     #   -r requirements/test.txt
     #   backports-zoneinfo
     #   celery
     #   django-celery-beat
-urllib3==2.1.0
+uritemplate==4.1.1
+    # via
+    #   -r requirements/test.txt
+    #   google-api-python-client
+urllib3==2.2.3
     # via
     #   -r requirements/test.txt
     #   requests
@@ -426,20 +635,20 @@ wcwidth==0.2.13
     # via
     #   -r requirements/test.txt
     #   prompt-toolkit
-web-fragments==2.1.0
+web-fragments==2.2.0
     # via
     #   -r requirements/test.txt
     #   xblock
-webob==1.8.7
+webob==1.8.8
     # via
     #   -r requirements/test.txt
     #   xblock
-xblock==1.9.1
+xblock==5.1.0
     # via
     #   -r requirements/test.txt
     #   edx-completion
     #   openedx-completion-aggregator
-yamllint==1.33.0
+yamllint==1.35.1
     # via -r requirements/quality.in
 
 # The following packages are considered to be unsafe in a requirements file:
