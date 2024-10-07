@@ -1,0 +1,38 @@
+<div class="certificate-status">
+    {% if is_author_mode %}
+        <p>The Studio view of this XBlock is not supported yet. Please preview the XBlock in the LMS.</p>
+    {% elif certificates %}
+        <h3>Your Certificates:</h3>
+        <ul>
+            {% for certificate_type, certificate in certificates.items %}
+                <li>
+                    <strong>Type:</strong> {{ certificate_type }}<br>
+                    {% if certificate.download_url %}
+                        <strong>Download Link:</strong> <a href="{{ certificate.download_url }}">Download Certificate</a>
+                    {% else %}
+                        <em>Status:</em> {{ certificate.status }}
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    {% if eligible_types %}
+        <h3>Certificate Eligibility Status:</h3>
+        <ul>
+            {% for certificate_type, is_eligible in eligible_types.items %}
+                <li>
+                    <strong>Type:</strong> {{ certificate_type }}
+                    {% if is_eligible %}
+                        <button class="btn-brand generate-certificate" data-certificate-type="{{ certificate_type }}">
+                            Generate Certificate
+                        </button>
+                    {% else %}
+                        <p><em>You are not yet eligible for this certificate.</em></p>
+                    {% endif %}
+                    <div id="message-area-{{ certificate_type }}"></div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+</div>
