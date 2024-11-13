@@ -1,38 +1,48 @@
-<div class="certificate-status">
+<div class="certificates-block">
     {% if is_author_mode %}
         <p>The Studio view of this XBlock is not supported yet. Please preview the XBlock in the LMS.</p>
-    {% elif certificates %}
-        <h3>Your Certificates:</h3>
-        <ul>
-            {% for certificate_type, certificate in certificates.items %}
-                <li>
-                    <strong>Type:</strong> {{ certificate_type }}<br>
-                    {% if certificate.download_url %}
-                        <strong>Download Link:</strong> <a href="{{ certificate.download_url }}">Download Certificate</a>
-                    {% else %}
-                        <em>Status:</em> {{ certificate.status }}
-                    {% endif %}
-                </li>
-            {% endfor %}
-        </ul>
-    {% endif %}
-
-    {% if eligible_types %}
-        <h3>Certificate Eligibility Status:</h3>
-        <ul>
-            {% for certificate_type, is_eligible in eligible_types.items %}
-                <li>
-                    <strong>Type:</strong> {{ certificate_type }}
-                    {% if is_eligible %}
-                        <button class="btn-brand generate-certificate" data-certificate-type="{{ certificate_type }}">
-                            Generate Certificate
+    {% else %}
+        <h3>Check Your Certificate Eligibility Status</h3>
+        <ul class="certificates-list">
+            {% if certificates %}
+                {% for certificate_type, certificate in certificates.items %}
+                    <li class="certificate">
+                        <strong>Type:</strong> {{ certificate_type }}
+                        {% if certificate.download_url %}
+                            <p class="certificate-status">Congratulations on finishing strong!</p>
+                            <strong>Download Link:</strong> <a href="{{ certificate.download_url }}">Download Certificate</a>
+                        {% elif certificate.status == certificate.Status.ERROR %}
+                            <p class="certificate-status">Something went wrong. Please contact us via the Help page for assistance.</p>
+                        {% endif %}
+                        <button class="btn-brand generate-certificate" data-certificate-type="{{ certificate_type }}" disabled>
+                            Certificate Claimed
                         </button>
-                    {% else %}
-                        <p><em>You are not yet eligible for this certificate.</em></p>
+                        <div id="message-area-{{ certificate_type }}"></div>
+                    </li>
+                {% endfor %}
+            {% endif %}
+
+            {% if eligible_types %}
+                {% for certificate_type, is_eligible in eligible_types.items %}
+                    {% if not certificates or certificate_type not in certificates %}
+                        <li class="certificate">
+                            <strong>Type:</strong> {{ certificate_type }}
+                            {% if is_eligible %}
+                                <p class="certificate-status">Congratulations! You have earned this certificate. Please claim it below.</p>
+                                <button class="btn-brand generate-certificate" data-certificate-type="{{ certificate_type }}">
+                                    Claim Certificate
+                                </button>
+                            {% else %}
+                                <p class="certificate-status">You are not yet eligible for this certificate.</p>
+                                <button class="btn-brand generate-certificate" data-certificate-type="{{ certificate_type }}" disabled>
+                                    Claim Certificate
+                                </button>
+                            {% endif %}
+                            <div id="message-area-{{ certificate_type }}"></div>
+                        </li>
                     {% endif %}
-                    <div id="message-area-{{ certificate_type }}"></div>
-                </li>
-            {% endfor %}
+                {% endfor %}
+            {% endif %}
         </ul>
     {% endif %}
 </div>
