@@ -149,10 +149,7 @@ def retrieve_subsection_grades(course_id: CourseKey, options: dict[str, Any], us
     required_grades: dict[str, int] = options['required_grades']
     required_grades = {key.lower(): value * 100 for key, value in required_grades.items()}
 
-    if user_id:
-        users = [get_user_model().objects.get(id=user_id)]
-    else:
-        users = get_course_enrollments(course_id)
+    users = get_course_enrollments(course_id, user_id)
     grades = _get_grades_by_format(course_id, users)
     log.debug(grades)
     weights = _get_category_weights(course_id)

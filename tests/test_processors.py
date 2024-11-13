@@ -179,7 +179,7 @@ def test_retrieve_subsection_grades(
     result = retrieve_subsection_grades(course_id, options)
 
     assert result == [101]
-    mock_get_course_enrollments.assert_called_once_with(course_id)
+    mock_get_course_enrollments.assert_called_once_with(course_id, None)
     mock_get_grades_by_format.assert_called_once_with(course_id, users)
     mock_get_category_weights.assert_called_once_with(course_id)
     mock_are_grades_passing_criteria.assert_has_calls(

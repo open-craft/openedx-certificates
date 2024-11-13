@@ -69,7 +69,7 @@ def generate_certificate_for_user(course_id: CourseKey, certificate_type: str, u
         logger.error('No course configuration found for course %s', course_id)
         return
 
-    if not force and user_id not in certificate_config.get_eligible_user_ids():
+    if not force and not certificate_config.get_eligible_user_ids(user_id):
         logger.error('User %s is not eligible for the certificate in course %s', user_id, course_id)
         raise ValueError('User is not eligible for the certificate.')
 
