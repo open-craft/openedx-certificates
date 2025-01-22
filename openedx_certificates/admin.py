@@ -8,20 +8,17 @@ from typing import TYPE_CHECKING
 
 from django import forms
 from django.contrib import admin
-from django.core.exceptions import ValidationError
 from django.utils.html import format_html
 from django_object_actions import DjangoObjectActions, action
 from django_reverse_admin import ReverseModelAdmin
-from opaque_keys import InvalidKeyError
-from opaque_keys.edx.keys import CourseKey
 
 from .models import (
     ExternalCertificate,
     ExternalCertificateAsset,
-    ExternalCertificateCourseConfiguration,
+    ExternalCertificateConfiguration,
     ExternalCertificateType,
 )
-from .tasks import generate_certificates_for_course_task
+from .tasks import generate_certificates_task
 
 if TYPE_CHECKING:  # pragma: no cover
     from collections.abc import Generator
@@ -117,10 +114,10 @@ class ExternalCertificateAssetAdmin(admin.ModelAdmin):  # noqa: D101
     prepopulated_fields = {"asset_slug": ("description",)}  # noqa: RUF012
 
 
-class ExternalCertificateCourseConfigurationForm(forms.ModelForm, DocstringOptionsMixin):  # noqa: D101
+class ExternalCertificateConfigurationForm(forms.ModelForm, DocstringOptionsMixin):  # noqa: D101
     class Meta:  # noqa: D106
-        model = ExternalCertificateCourseConfiguration
-        fields = ('course_id', 'certificate_type', 'custom_options')
+        model = ExternalCertificateConfiguration
+        fields = ('resource_id', 'resource_type', 'certificate_type', 'custom_options')
 
     def __init__(self, *args, **kwargs):
         """Initializes the choices for the retrieval and generation function selection fields."""
@@ -137,19 +134,9 @@ class ExternalCertificateCourseConfigurationForm(forms.ModelForm, DocstringOptio
 
             self.fields['custom_options'].help_text += options
 
-    def clean_course_id(self) -> CourseKey:
-        """Validate the course_id field."""
-        course_id = self.cleaned_data.get('course_id')
-        try:
-            CourseKey.from_string(course_id)
-        except InvalidKeyError as exc:
-            msg = "Invalid course ID format. The correct format is 'course-v1:{Organization}+{Course}+{Run}'."
-            raise ValidationError(msg) from exc
-        return course_id
 
-
-@admin.register(ExternalCertificateCourseConfiguration)
-class ExternalCertificateCourseConfigurationAdmin(DjangoObjectActions, ReverseModelAdmin):
+@admin.register(ExternalCertificateConfiguration)
+class ExternalCertificateConfigurationAdmin(DjangoObjectActions, ReverseModelAdmin):
     """
     Admin page for the course-specific certificate configuration for each certificate type.
 
@@ -157,7 +144,7 @@ class ExternalCertificateCourseConfigurationAdmin(DjangoObjectActions, ReverseMo
     The reverse inline provides a way to manage the periodic task from the configuration page.
     """
 
-    form = ExternalCertificateCourseConfigurationForm
+    form = ExternalCertificateConfigurationForm
     inline_type = 'stacked'
     inline_reverse = [  # noqa: RUF012
         (
@@ -165,14 +152,14 @@ class ExternalCertificateCourseConfigurationAdmin(DjangoObjectActions, ReverseMo
             {'fields': ['enabled', 'interval', 'crontab', 'clocked', 'start_time', 'expires', 'one_off']},
         ),
     ]
-    list_display = ('course_id', 'certificate_type', 'enabled', 'interval')
-    search_fields = ('course_id', 'certificate_type__name')
-    list_filter = ('course_id', 'certificate_type')
+    list_display = ('resource_id', 'resource_type', 'certificate_type', 'enabled', 'interval')
+    search_fields = ('resource_id', 'resource_type', 'certificate_type__name')
+    list_filter = ('resource_id', 'resource_type', 'certificate_type')
 
     def get_inline_instances(
         self,
         request: HttpRequest,
-        obj: ExternalCertificateCourseConfiguration = None,
+        obj: ExternalCertificateConfiguration = None,
     ) -> list[admin.ModelAdmin]:
         """
         Hide inlines on the "Add" view in Django admin, and show them on the "Change" view.
@@ -186,25 +173,25 @@ class ExternalCertificateCourseConfigurationAdmin(DjangoObjectActions, ReverseMo
         """
         return super().get_inline_instances(request, obj) if '/add/' not in request.path else []
 
-    def enabled(self, obj: ExternalCertificateCourseConfiguration) -> bool:
+    def enabled(self, obj: ExternalCertificateConfiguration) -> bool:
         """Return the 'enabled' status of the periodic task."""
         return obj.periodic_task.enabled
 
     enabled.boolean = True
 
     # noinspection PyMethodMayBeStatic
-    def interval(self, obj: ExternalCertificateCourseConfiguration) -> IntervalSchedule:
+    def interval(self, obj: ExternalCertificateConfiguration) -> IntervalSchedule:
         """Return the interval of the certificate generation task."""
         return obj.periodic_task.interval
 
-    def get_readonly_fields(self, _request: HttpRequest, obj: ExternalCertificateCourseConfiguration = None) -> tuple:
-        """Make the course_id field read-only."""
+    def get_readonly_fields(self, _request: HttpRequest, obj: ExternalCertificateConfiguration = None) -> tuple:
+        """Make the resource_id field read-only."""
         if obj:  # editing an existing object
-            return *self.readonly_fields, 'course_id', 'certificate_type'
+            return *self.readonly_fields, 'resource_id', 'resource_type', 'certificate_type'
         return self.readonly_fields
 
     @action(label="Generate certificates")
-    def generate_certificates(self, _request: HttpRequest, obj: ExternalCertificateCourseConfiguration):
+    def generate_certificates(self, _request: HttpRequest, obj: ExternalCertificateConfiguration):
         """
         Custom action to generate certificates for the current ExternalCertificateCourse instance.
 
@@ -212,7 +199,7 @@ class ExternalCertificateCourseConfigurationAdmin(DjangoObjectActions, ReverseMo
             _request: The request object.
             obj: The ExternalCertificateCourse instance.
         """
-        generate_certificates_for_course_task.delay(obj.id)
+        generate_certificates_task.delay(obj.id)
 
     change_actions = ('generate_certificates',)
 
@@ -222,7 +209,8 @@ class ExternalCertificateAdmin(admin.ModelAdmin):  # noqa: D101
     list_display = (
         'user_id',
         'user_full_name',
-        'course_id',
+        'resource_id',
+        'resource_type',
         'certificate_type',
         'status',
         'url',
@@ -234,7 +222,8 @@ class ExternalCertificateAdmin(admin.ModelAdmin):  # noqa: D101
         'created',
         'modified',
         'user_full_name',
-        'course_id',
+        'resource_id',
+        'resource_type',
         'certificate_type',
         'status',
         'url',

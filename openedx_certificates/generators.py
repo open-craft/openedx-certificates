@@ -7,16 +7,18 @@ certificates for the users.
 We will move this module to an external repository (a plugin).
 """
 
-from __future__ import annotations
+from __future__ import annotations  # noqa: I001
 
 import io
 import logging
 import secrets
 from typing import TYPE_CHECKING, Any
 
+from django.apps import apps
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.files.storage import FileSystemStorage, default_storage
+
 from pypdf import PdfReader, PdfWriter
 from pypdf.constants import UserAccessPermissions
 from reportlab.pdfbase import pdfmetrics
@@ -26,13 +28,11 @@ from reportlab.pdfgen import canvas
 from openedx_certificates.compat import get_course_name, get_default_storage_url, get_localized_certificate_date
 from openedx_certificates.models import ExternalCertificateAsset
 
-log = logging.getLogger(__name__)
-
 if TYPE_CHECKING:  # pragma: no cover
+    from django.contrib.auth.models import User  # noqa: I001
     from uuid import UUID
 
-    from django.contrib.auth.models import User
-    from opaque_keys.edx.keys import CourseKey
+log = logging.getLogger(__name__)
 
 
 def _get_user_name(user: User) -> str:
@@ -58,14 +58,20 @@ def _register_font(options: dict[str, Any]) -> str:
     return font or 'Helvetica'
 
 
-def _write_text_on_template(template: any, font: str, username: str, course_name: str, options: dict[str, Any]) -> any:
+def _write_text_on_template(
+    template: any,
+    font: str,
+    username: str,
+    resource_name: str,
+    options: dict[str, Any],
+) -> any:
     """
-    Prepare a new canvas and write the user and course name onto it.
+    Prepare a new canvas and write the user and resource name onto it.
 
     :param template: Pdf template.
     :param font: Font name.
     :param username: The name of the user to generate the certificate for.
-    :param course_name: The name of the course the learner completed.
+    :param resource_name: The name of the resource the learner completed (e.g. course, learning_path).
     :param options: A dictionary documented in the `generate_pdf_certificate` function.
     :returns: A canvas with written data.
     """
@@ -99,16 +105,16 @@ def _write_text_on_template(template: any, font: str, username: str, course_name
 
     # Write the course name.
     pdf_canvas.setFont(font, 28)
-    course_name_color = options.get('course_name_color', '#000')
-    pdf_canvas.setFillColorRGB(*hex_to_rgb(course_name_color))
+    resource_name_color = options.get('resource_name_color', '#000')
+    pdf_canvas.setFillColorRGB(*hex_to_rgb(resource_name_color))
 
-    course_name_y = options.get('course_name_y', 220)
-    course_name_line_height = 28 * 1.1
+    resource_name_y = options.get('resource_name_y', 220)
+    resource_name_line_height = 28 * 1.1
 
     # Split the course name into lines and write each of them in the center of the template.
-    for line_number, line in enumerate(course_name.split('\n')):
+    for line_number, line in enumerate(resource_name.split('\n')):
         line_x = (template_width - pdf_canvas.stringWidth(line)) / 2
-        line_y = course_name_y - (line_number * course_name_line_height)
+        line_y = resource_name_y - (line_number * resource_name_line_height)
         pdf_canvas.drawString(line_x, line_y, line)
 
     # Write the issue date.
@@ -162,39 +168,59 @@ def _save_certificate(certificate: PdfWriter, certificate_uuid: UUID) -> str:
     return url
 
 
-def generate_pdf_certificate(course_id: CourseKey, user: User, certificate_uuid: UUID, options: dict[str, Any]) -> str:
+def generate_pdf_certificate(
+    resource_id: str,
+    resource_type: str,
+    user: User,
+    certificate_uuid: UUID,
+    options: dict[str, Any],
+) -> str:
     """
     Generate a PDF certificate.
 
-    :param course_id: The ID of the course the learner completed.
-    :param user: The user to generate the certificate for.
+    :param resource_id: The ID of the course or learning path the learner completed.
+    :param resource_type: The type of the resource ('course' or 'learning_path').
     :param certificate_uuid: The UUID of the certificate to generate.
     :param options: The custom options for the certificate.
     :returns: The URL of the saved certificate.
 
     Options:
       - template: The path to the PDF template file.
-      - template_two_lines: The path to the PDF template file for two-line course names.
-        A two-line course name is specified by using a semicolon as a separator.
+      - template_two_lines: The path to the PDF template file for two-line resource names.
+        A two-line resource name is specified by using a semicolon as a separator.
       - font: The name of the font to use.
       - name_y: The Y coordinate of the name on the certificate (vertical position on the template).
       - name_color: The color of the name on the certificate (hexadecimal color code).
-      - course_name: Specify the course name to use instead of the course Display Name retrieved from Open edX.
-      - course_name_y: The Y coordinate of the course name on the certificate (vertical position on the template).
-      - course_name_color: The color of the course name on the certificate (hexadecimal color code).
+      - resource_name: Specify the resource name to use instead of the Display Name retrieved from Open edX.
+      - resource_name_y: The Y coordinate of the resource name.
+      - resource_name_color: The color of the resource name.
       - issue_date_y: The Y coordinate of the issue date on the certificate (vertical position on the template).
       - issue_date_color: The color of the issue date on the certificate (hexadecimal color code).
     """
     log.info("Starting certificate generation for user %s", user.id)
 
     username = _get_user_name(user)
-    course_name = options.get('course_name') or get_course_name(course_id)
+    resource_name = options.get('resource_name')
+
+    if resource_type == 'course':
+        resource_name = resource_name or get_course_name(resource_id)
+    elif resource_type == 'learning_path':
+        if not apps.is_installed('learning_paths'):
+            resource_name = ""
+        try:
+            LearningPath = apps.get_model('learning_paths', 'LearningPath')
+            resource_name = LearningPath.objects.get(uuid=resource_id).display_name
+        except Exception:  # noqa: BLE001
+            resource_name = ""
+    else:
+        msg = f"Unsupported resource type: {resource_type}"
+        raise ValueError(msg)
 
     # Get template from the ExternalCertificateAsset.
     # HACK: We support two-line strings by using a semicolon as a separator.
-    if ';' in course_name and (template_path := options.get('template_two_lines')):
+    if ';' in resource_name and (template_path := options.get('template_two_lines')):
         template_file = ExternalCertificateAsset.get_asset_by_slug(template_path)
-        course_name = course_name.replace(';', '\n')
+        resource_name = resource_name.replace(';', '\n')
     else:
         template_file = ExternalCertificateAsset.get_asset_by_slug(options['template'])
 
@@ -207,7 +233,7 @@ def generate_pdf_certificate(course_id: CourseKey, user: User, certificate_uuid:
         certificate = PdfWriter()
 
         # Create a new canvas, prepare the page and write the data
-        pdf_canvas = _write_text_on_template(template, font, username, course_name, options)
+        pdf_canvas = _write_text_on_template(template, font, username, resource_name, options)
 
         overlay_pdf = PdfReader(io.BytesIO(pdf_canvas.getpdfdata()))
         template.merge_page(overlay_pdf.pages[0])

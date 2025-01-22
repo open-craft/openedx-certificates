@@ -13,6 +13,7 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from completion_aggregator.api.v1.views import CompletionDetailView
+from django.apps import apps
 from django.contrib.auth import get_user_model
 from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
@@ -23,6 +24,7 @@ from openedx_certificates.compat import (
     get_course_grading_policy,
     prefetch_course_grades,
 )
+from openedx_certificates.models import ExternalCertificateConfiguration
 
 if TYPE_CHECKING:  # pragma: no cover
     from django.contrib.auth.models import User
@@ -221,3 +223,41 @@ def retrieve_course_completions(course_id: CourseKey, options: dict[str, Any]) -
         view = _prepare_request_to_completion_aggregator(course_id, query_params.copy(), url)
 
     return list(get_user_model().objects.filter(username__in=completions).values_list('id', flat=True))
+
+
+def retrieve_learner_paths_eligible_users(lp_uuid, options: dict[str, Any]) -> list[int]:  # noqa: ANN001
+    """Retrieve eligible users for a Learning Path."""
+    eligible_users = None
+
+    if not apps.is_installed('learning_paths'):
+        return []
+
+    try:
+        LearningPathStep = apps.get_model('learning_paths', 'LearningPathStep')
+        steps = LearningPathStep.objects.filter(learning_path__uuid=lp_uuid)
+
+        if not steps.exists():
+            return []
+
+        for step in steps:
+            course_id = str(step.course_key)
+            try:
+                existing_config = ExternalCertificateConfiguration.objects.get(
+                    resource_id=course_id,
+                    resource_type=ExternalCertificateConfiguration.ResourceTypes.COURSE,
+                )
+                course_users = existing_config.get_eligible_user_ids()
+            except ExternalCertificateConfiguration.DoesNotExist:
+                course_users = retrieve_course_completions(
+                    course_id,
+                    options.get("course_options", {}).get(course_id, {}),
+                )
+            if eligible_users is None:
+                eligible_users = set(course_users)
+            else:
+                eligible_users &= set(course_users)
+
+        return list(eligible_users)
+    except Exception:
+        log.exception("Unable to find the learning path.")
+        return []
