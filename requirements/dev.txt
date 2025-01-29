@@ -326,7 +326,7 @@ google-cloud-firestore==2.20.0
     # via
     #   -r requirements/quality.txt
     #   firebase-admin
-google-cloud-storage==2.19.0
+google-cloud-storage==3.0.0
     # via
     #   -r requirements/quality.txt
     #   firebase-admin
