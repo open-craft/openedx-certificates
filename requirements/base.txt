@@ -203,7 +203,7 @@ google-cloud-core==2.4.1
     #   google-cloud-storage
 google-cloud-firestore==2.20.0
     # via firebase-admin
-google-cloud-storage==2.19.0
+google-cloud-storage==3.0.0
     # via firebase-admin
 google-crc32c==1.6.0
     # via
