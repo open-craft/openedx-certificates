@@ -31,30 +31,27 @@ def test_get_category_weights(mock_get_course_grading_policy: Mock):
 
 
 @patch('openedx_certificates.processors.prefetch_course_grades')
-@patch('openedx_certificates.processors.get_course_grade_factory')
-def test_get_grades_by_format(mock_get_course_grade_factory: Mock, mock_prefetch_course_grades: Mock):
+@patch('openedx_certificates.processors.get_course_grade')
+def test_get_grades_by_format(mock_get_course_grade: Mock, mock_prefetch_course_grades: Mock):
     """Test that grades are retrieved for each user and categorized by assignment types."""
     course_id = Mock(spec=CourseKey)
     users = [Mock(name="User1", id=101), Mock(name="User2", id=102)]
 
-    mock_read_grades = Mock()
-    mock_read_grades.return_value.graded_subsections_by_format.return_value = {
+    mock_get_course_grade.return_value.graded_subsections_by_format.return_value = {
         'Homework': {'subsection1': Mock(graded_total=Mock(earned=50.0, possible=100.0))},
         'Exam': {'subsection2': Mock(graded_total=Mock(earned=90.0, possible=100.0))},
     }
-    mock_get_course_grade_factory.return_value.read = mock_read_grades
 
     result = _get_grades_by_format(course_id, users)
 
     assert result == {101: {'homework': 50.0, 'exam': 90.0}, 102: {'homework': 50.0, 'exam': 90.0}}
     mock_prefetch_course_grades.assert_called_once_with(course_id, users)
-    mock_get_course_grade_factory.assert_called_once()
 
-    mock_read_grades.assert_has_calls(
+    mock_get_course_grade.assert_has_calls(
         [
-            call(users[0], course_key=course_id),
+            call(users[0], course_id),
             call().graded_subsections_by_format(),
-            call(users[1], course_key=course_id),
+            call(users[1], course_id),
             call().graded_subsections_by_format(),
         ],
     )
