@@ -65,23 +65,30 @@ def get_course_enrollments(course_id: CourseKey) -> list[User]:
 
 @contextmanager
 def prefetch_course_grades(course_id: CourseKey, users: list[User]):
-    """Prefetch the course grades from Open edX."""
-    # noinspection PyUnresolvedReferences,PyPackageRequirements
-    from lms.djangoapps.grades.api import clear_prefetched_course_grades, prefetch_course_grades
+    """
+    Prefetch the course grades from Open edX.
 
-    prefetch_course_grades(course_id, users)
+    This optimizes retrieving grades for multiple users.
+    """
+    # noinspection PyUnresolvedReferences,PyPackageRequirements
+    from lms.djangoapps.grades.api import clear_prefetched_course_grades, prefetch_course_and_subsection_grades
+
+    prefetch_course_and_subsection_grades(course_id, users)
     try:
         yield
     finally:
+        # This uses `clear_prefetched_course_grades` instead of `clear_prefetched_course_and_subsection_grades` because
+        # these function names were accidentally swapped in the Open edX codebase.
+        # Ref: https://github.com/openedx/edx-platform/blob/1fe67d3f6b40233791d4599bae28df8c0ac91c4d/lms/djangoapps/grades/models_api.py#L30-L36
         clear_prefetched_course_grades(course_id)
 
 
-def get_course_grade_factory():  # noqa: ANN201
-    """Get the course grade factory from Open edX."""
+def get_course_grade(user: User, course_id: CourseKey):  # noqa: ANN201
+    """Get the `CourseGrade` instance from Open edX."""
     # noinspection PyUnresolvedReferences,PyPackageRequirements
-    from lms.djangoapps.grades.course_grade_factory import CourseGradeFactory
+    from lms.djangoapps.grades.api import CourseGradeFactory
 
-    return CourseGradeFactory()
+    return CourseGradeFactory().read(user, course_key=course_id)
 
 
 def get_localized_certificate_date() -> str:

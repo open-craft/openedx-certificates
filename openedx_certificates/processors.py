@@ -19,7 +19,7 @@ from rest_framework.test import APIRequestFactory
 
 from openedx_certificates.compat import (
     get_course_enrollments,
-    get_course_grade_factory,
+    get_course_grade,
     get_course_grading_policy,
     prefetch_course_grades,
 )
@@ -66,11 +66,9 @@ def _get_grades_by_format(course_id: CourseKey, users: list[User]) -> dict[int, 
     grades = {}
 
     with prefetch_course_grades(course_id, users):
-        course_grade_factory = get_course_grade_factory()
-
         for user in users:
             grades[user.id] = {}
-            course_grade = course_grade_factory.read(user, course_key=course_id)
+            course_grade = get_course_grade(user, course_id)
             for assignment_type, subsections in course_grade.graded_subsections_by_format().items():
                 assignment_earned = 0
                 assignment_possible = 0
