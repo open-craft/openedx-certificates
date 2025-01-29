@@ -7,7 +7,7 @@ import pytest
 from openedx_certificates.tasks import (
     generate_all_certificates_task,
     generate_certificate_for_user_task,
-    generate_certificates_for_course_task,
+    generate_certificates_task,
 )
 
 
@@ -19,7 +19,7 @@ def test_generate_certificate_for_user():
     task_id = 789
 
     with (
-        patch('openedx_certificates.models.ExternalCertificateCourseConfiguration.objects.get') as mock_get,
+        patch('openedx_certificates.models.ExternalCertificateConfiguration.objects.get') as mock_get,
         patch(
             'openedx_certificates.tasks.generate_certificate_for_user_task',
         ) as mock_task,
@@ -38,14 +38,14 @@ def test_generate_certificate_for_user():
 
 
 @pytest.mark.django_db
-def test_generate_certificates_for_course_with_filtering():
+def test_generate_certificates_with_filtering():
     """Test if `generate_certificate_for_user_task.delay` is called for each filtered eligible user."""
     course_config_id = 123
     all_eligible_user_ids = [1, 2, 3, 4]  # Initial set of eligible user IDs
     filtered_user_ids = [1, 3]  # User IDs after filtering (e.g., users 2 and 4 already have certificates)
 
     with (
-        patch('openedx_certificates.models.ExternalCertificateCourseConfiguration.objects.get') as mock_get,
+        patch('openedx_certificates.models.ExternalCertificateConfiguration.objects.get') as mock_get,
         patch(
             'openedx_certificates.tasks.generate_certificate_for_user_task.delay',
         ) as mock_delay,
@@ -57,7 +57,7 @@ def test_generate_certificates_for_course_with_filtering():
         mock_config.get_eligible_user_ids.return_value = all_eligible_user_ids
         mock_config.filter_out_user_ids_with_certificates.return_value = filtered_user_ids
 
-        generate_certificates_for_course_task(course_config_id)
+        generate_certificates_task(course_config_id)
 
         # Ensure that the delay method is called only for filtered user IDs
         assert mock_delay.call_count == len(filtered_user_ids)
@@ -67,7 +67,7 @@ def test_generate_certificates_for_course_with_filtering():
 
 @pytest.mark.django_db
 def test_generate_all_certificates():
-    """Test if `generate_certificates_for_course_task.delay` is called for each enabled configuration."""
+    """Test if `generate_certificates_task.delay` is called for each enabled configuration."""
     config_ids = [101, 102, 103]
 
     # Create a mock QuerySet
@@ -76,10 +76,10 @@ def test_generate_all_certificates():
 
     with (
         patch(
-            'openedx_certificates.models.ExternalCertificateCourseConfiguration.get_enabled_configurations',
+            'openedx_certificates.models.ExternalCertificateConfiguration.get_enabled_configurations',
             return_value=mock_queryset,
         ),
-        patch('openedx_certificates.tasks.generate_certificates_for_course_task.delay') as mock_delay,
+        patch('openedx_certificates.tasks.generate_certificates_task.delay') as mock_delay,
     ):
         generate_all_certificates_task()
 
