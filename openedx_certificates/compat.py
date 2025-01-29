@@ -32,6 +32,11 @@ def get_celery_app() -> Celery:
     return CELERY_APP  # pragma: no cover
 
 
+def get_default_storage_url() -> str:
+    """Get the default storage URL from Open edX."""
+    return f"{settings.LMS_ROOT_URL}{settings.MEDIA_URL}"
+
+
 def get_course_grading_policy(course_id: CourseKey) -> dict:
     """Get the course grading policy from Open edX."""
     # noinspection PyUnresolvedReferences,PyPackageRequirements

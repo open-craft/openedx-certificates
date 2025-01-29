@@ -23,7 +23,7 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 
-from openedx_certificates.compat import get_course_name, get_localized_certificate_date
+from openedx_certificates.compat import get_course_name, get_default_storage_url, get_localized_certificate_date
 from openedx_certificates.models import ExternalCertificateAsset
 
 log = logging.getLogger(__name__)
@@ -152,7 +152,7 @@ def _save_certificate(certificate: PdfWriter, certificate_uuid: UUID) -> str:
         default_storage.delete(output_path)
     default_storage.save(output_path, certificate_file)
     if isinstance(default_storage, FileSystemStorage):
-        url = f"{settings.LMS_ROOT_URL}{settings.MEDIA_URL}{output_path}"
+        url = f"{get_default_storage_url()}{output_path}"
     else:
         url = default_storage.url(output_path)
 
