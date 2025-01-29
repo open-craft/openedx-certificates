@@ -34,6 +34,7 @@ PIP_COMPILE = uv pip compile --upgrade $(PIP_COMPILE_OPTS)
 
 upgrade: export CUSTOM_COMPILE_COMMAND=make upgrade
 upgrade: piptools ## update the requirements/*.txt files with the latest packages satisfying requirements/*.in
+	uv venv --allow-existing
 	# Make sure to compile files after any other files they include!
 	$(PIP_COMPILE) -o requirements/pip.txt requirements/pip.in
 	uv pip install -qr requirements/pip.txt
