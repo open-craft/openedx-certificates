@@ -56,6 +56,7 @@ class ExternalCertificateType(TimeStampedModel):
         for func_field in ['retrieval_func', 'generation_func']:
             func_path = getattr(self, func_field)
             try:
+                # TODO: Move the function retrieval to a method to avoid code duplication.
                 module_path, func_name = func_path.rsplit('.', 1)
                 module = import_module(module_path)
                 getattr(module, func_name)  # Will raise AttributeError if the function does not exist.
@@ -189,7 +190,7 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
         """
         user = get_user_model().objects.get(id=user_id)
         # Use the name from the profile if it is not empty. Otherwise, use the first and last name.
-        # We check if the profile exists because it is absent in unit tests.
+        # We check if the profile exists because it may not exist in some cases (e.g., when a User is created manually).
         user_full_name = getattr(getattr(user, 'profile', None), 'name', f"{user.first_name} {user.last_name}")
         custom_options = {**self.certificate_type.custom_options, **self.custom_options}
 
@@ -240,8 +241,8 @@ class ExternalCertificate(TimeStampedModel):
     This model contains information about the related course, the user who earned the certificate,
     the download URL for the certificate PDF, and the associated certificate generation task.
 
-    .. note:: The ID field is not a conventional auto-incrementing integer, but a value
-       that allows for old certificates with custom IDs.
+    .. note:: Certificates are identified by UUIDs rather than integer keys to prevent enumeration attacks
+       or privacy leaks.
 
     .. pii: The User's name is stored in this model.
     .. pii_types: id, name
