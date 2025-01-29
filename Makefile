@@ -33,8 +33,7 @@ docs: ## generate Sphinx HTML documentation, including API docs
 PIP_COMPILE = uv pip compile --upgrade $(PIP_COMPILE_OPTS)
 
 upgrade: export CUSTOM_COMPILE_COMMAND=make upgrade
-upgrade: ## update the requirements/*.txt files with the latest packages satisfying requirements/*.in
-	uv pip install -qr requirements/pip.txt
+upgrade: piptools ## update the requirements/*.txt files with the latest packages satisfying requirements/*.in
 	# Make sure to compile files after any other files they include!
 	$(PIP_COMPILE) -o requirements/pip.txt requirements/pip.in
 	uv pip install -qr requirements/pip.txt
