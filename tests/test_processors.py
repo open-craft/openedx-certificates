@@ -199,9 +199,12 @@ def test_prepare_request_to_completion_aggregator():
     query_params = {'param1': 'value1', 'param2': 'value2'}
     url = '/test_url/'
 
-    with patch('openedx_certificates.processors.get_user_model') as mock_get_user_model, patch(
-        'openedx_certificates.processors.CompletionDetailView',
-    ) as mock_view_class:
+    with (
+        patch('openedx_certificates.processors.get_user_model') as mock_get_user_model,
+        patch(
+            'openedx_certificates.processors.CompletionDetailView',
+        ) as mock_view_class,
+    ):
         staff_user = Mock(is_staff=True)
         mock_get_user_model().objects.filter().first.return_value = staff_user
 

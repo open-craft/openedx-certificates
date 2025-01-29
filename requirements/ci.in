@@ -3,3 +3,4 @@
 -c constraints.txt
 
 tox                       # Virtualenv management for tests
+tox-uv                    # Replace pip with uv in tox

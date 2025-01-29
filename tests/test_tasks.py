@@ -18,9 +18,12 @@ def test_generate_certificate_for_user():
     user_id = 456
     task_id = 789
 
-    with patch('openedx_certificates.models.ExternalCertificateCourseConfiguration.objects.get') as mock_get, patch(
-        'openedx_certificates.tasks.generate_certificate_for_user_task',
-    ) as mock_task:
+    with (
+        patch('openedx_certificates.models.ExternalCertificateCourseConfiguration.objects.get') as mock_get,
+        patch(
+            'openedx_certificates.tasks.generate_certificate_for_user_task',
+        ) as mock_task,
+    ):
         mock_config = Mock()
         mock_get.return_value = mock_config
 
@@ -41,9 +44,12 @@ def test_generate_certificates_for_course_with_filtering():
     all_eligible_user_ids = [1, 2, 3, 4]  # Initial set of eligible user IDs
     filtered_user_ids = [1, 3]  # User IDs after filtering (e.g., users 2 and 4 already have certificates)
 
-    with patch('openedx_certificates.models.ExternalCertificateCourseConfiguration.objects.get') as mock_get, patch(
-        'openedx_certificates.tasks.generate_certificate_for_user_task.delay',
-    ) as mock_delay:
+    with (
+        patch('openedx_certificates.models.ExternalCertificateCourseConfiguration.objects.get') as mock_get,
+        patch(
+            'openedx_certificates.tasks.generate_certificate_for_user_task.delay',
+        ) as mock_delay,
+    ):
         mock_config = Mock()
         mock_get.return_value = mock_config
 
@@ -68,10 +74,13 @@ def test_generate_all_certificates():
     mock_queryset = MagicMock()
     mock_queryset.values_list.return_value = config_ids
 
-    with patch(
-        'openedx_certificates.models.ExternalCertificateCourseConfiguration.get_enabled_configurations',
-        return_value=mock_queryset,
-    ), patch('openedx_certificates.tasks.generate_certificates_for_course_task.delay') as mock_delay:
+    with (
+        patch(
+            'openedx_certificates.models.ExternalCertificateCourseConfiguration.get_enabled_configurations',
+            return_value=mock_queryset,
+        ),
+        patch('openedx_certificates.tasks.generate_certificates_for_course_task.delay') as mock_delay,
+    ):
         generate_all_certificates_task()
 
         assert mock_delay.call_count == len(config_ids)

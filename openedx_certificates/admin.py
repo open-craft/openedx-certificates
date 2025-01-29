@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import importlib
 import inspect
-from typing import TYPE_CHECKING, Generator
+from typing import TYPE_CHECKING
 
 from django import forms
 from django.contrib import admin
@@ -24,6 +24,8 @@ from .models import (
 from .tasks import generate_certificates_for_course_task
 
 if TYPE_CHECKING:  # pragma: no cover
+    from collections.abc import Generator
+
     from django.http import HttpRequest
     from django_celery_beat.models import IntervalSchedule
 

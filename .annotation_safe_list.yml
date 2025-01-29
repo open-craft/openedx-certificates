@@ -19,8 +19,6 @@ auth.User:
   ".. pii_retirement": consumer_api
 contenttypes.ContentType:
   ".. no_pii:": This model has no PII
-completion.BlockCompletion:
-  ".. no_pii:": This model has no PII
 completion_aggregator.Aggregator:
   ".. no_pii:": This model has no PII
 completion_aggregator.CacheGroupInvalidation:

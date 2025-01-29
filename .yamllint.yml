@@ -6,6 +6,7 @@ ignore: |
   .tox/
   pii_report/
   venv/
+  .venv/
 rules:
   indentation:
     spaces: consistent
