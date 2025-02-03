@@ -46,7 +46,7 @@ celery==5.4.0
     #   edx-celeryutils
     #   event-tracking
     #   openedx-completion-aggregator
-certifi==2024.12.14
+certifi==2025.1.31
     # via
     #   -r requirements/test.txt
     #   requests
@@ -194,7 +194,7 @@ drf-jwt==1.19.2
     # via
     #   -r requirements/test.txt
     #   edx-drf-extensions
-edx-ace==1.11.3
+edx-ace==1.11.4
     # via -r requirements/test.txt
 edx-ccx-keys==2.0.2
     # via
@@ -205,7 +205,7 @@ edx-celeryutils==1.3.0
     #   -r requirements/test.txt
     #   edx-event-routing-backends
     #   openedx-completion-aggregator
-edx-completion==4.7.8
+edx-completion==4.7.9
     # via
     #   -r requirements/test.txt
     #   openedx-completion-aggregator
@@ -234,6 +234,7 @@ edx-opaque-keys==2.11.0
     #   edx-drf-extensions
     #   openedx-completion-aggregator
     #   openedx-events
+    #   openedx-filters
 edx-toggles==5.2.0
     # via
     #   -r requirements/test.txt
@@ -249,7 +250,7 @@ event-tracking==3.0.0
     #   openedx-completion-aggregator
 factory-boy==3.3.1
     # via -r requirements/test.txt
-faker==35.0.0
+faker==35.2.0
     # via
     #   -r requirements/test.txt
     #   factory-boy
@@ -380,17 +381,17 @@ msgpack==1.1.0
     #   cachecontrol
 mypy-extensions==1.0.0
     # via black
-newrelic==10.4.0
+newrelic==10.5.0
     # via
     #   -r requirements/test.txt
     #   edx-django-utils
 openedx-completion-aggregator==4.2.0
     # via -r requirements/test.txt
-openedx-events==9.15.2
+openedx-events==9.17.0
     # via
     #   -r requirements/test.txt
     #   event-tracking
-openedx-filters==1.12.0
+openedx-filters==1.13.0
     # via
     #   -r requirements/test.txt
     #   edx-event-routing-backends
@@ -498,7 +499,7 @@ python-slugify==8.0.4
     # via
     #   -r requirements/test.txt
     #   code-annotations
-pytz==2024.2
+pytz==2025.1
     # via
     #   -r requirements/test.txt
     #   edx-completion
@@ -532,7 +533,7 @@ rsa==4.9
     # via
     #   -r requirements/test.txt
     #   google-auth
-ruff==0.9.3
+ruff==0.9.4
     # via -r requirements/quality.in
 sailthru-client==2.2.3
     # via
