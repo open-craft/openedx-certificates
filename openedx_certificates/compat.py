@@ -17,6 +17,7 @@ from django.conf import settings
 
 if TYPE_CHECKING:  # pragma: no cover
     from django.contrib.auth.models import User
+    from opaque_keys.edx.django.models import CourseKeyField
     from opaque_keys.edx.keys import CourseKey
 
 
@@ -45,7 +46,7 @@ def get_course_grading_policy(course_id: CourseKey) -> dict:
     return modulestore().get_course(course_id).grading_policy["GRADER"]
 
 
-def get_course_name(course_id: CourseKey) -> str:
+def get_course_name(course_id: CourseKey | CourseKeyField) -> str:
     """Get the course name from Open edX."""
     # noinspection PyUnresolvedReferences,PyPackageRequirements
     from openedx.core.djangoapps.content.learning_sequences.api import get_course_outline
