@@ -98,7 +98,7 @@ colorama==0.4.6
     # via
     #   -r requirements/ci.txt
     #   tox
-coverage==7.6.11
+coverage==7.6.12
     # via
     #   -r requirements/quality.txt
     #   django-coverage-plugin
@@ -107,7 +107,7 @@ cron-descriptor==1.4.5
     # via
     #   -r requirements/quality.txt
     #   django-celery-beat
-cryptography==44.0.0
+cryptography==44.0.1
     # via
     #   -r requirements/quality.txt
     #   django-fernet-fields-v2
@@ -151,7 +151,7 @@ django==4.2.19
     #   openedx-filters
 django-celery-beat==2.7.0
     # via -r requirements/quality.txt
-django-config-models==2.7.0
+django-config-models==2.8.0
     # via
     #   -r requirements/quality.txt
     #   edx-event-routing-backends
@@ -253,7 +253,7 @@ edx-opaque-keys==2.11.0
     #   openedx-completion-aggregator
     #   openedx-events
     #   openedx-filters
-edx-toggles==5.2.0
+edx-toggles==5.3.0
     # via
     #   -r requirements/quality.txt
     #   edx-completion
@@ -268,7 +268,7 @@ event-tracking==3.0.0
     #   openedx-completion-aggregator
 factory-boy==3.3.3
     # via -r requirements/quality.txt
-faker==35.2.0
+faker==36.1.1
     # via
     #   -r requirements/quality.txt
     #   factory-boy
@@ -301,7 +301,7 @@ google-api-core==2.24.1
     #   google-cloud-core
     #   google-cloud-firestore
     #   google-cloud-storage
-google-api-python-client==2.160.0
+google-api-python-client==2.161.0
     # via
     #   -r requirements/quality.txt
     #   firebase-admin
@@ -340,7 +340,7 @@ google-resumable-media==2.7.2
     # via
     #   -r requirements/quality.txt
     #   google-cloud-storage
-googleapis-common-protos==1.66.0
+googleapis-common-protos==1.67.0
     # via
     #   -r requirements/quality.txt
     #   google-api-core
@@ -385,7 +385,7 @@ kombu==5.4.2
     # via
     #   -r requirements/quality.txt
     #   celery
-lxml==5.3.0
+lxml==5.3.1
     # via
     #   -r requirements/quality.txt
     #   edx-i18n-tools
@@ -417,7 +417,7 @@ newrelic==10.6.0
     #   edx-django-utils
 openedx-completion-aggregator==4.2.0
     # via -r requirements/quality.txt
-openedx-events==9.17.0
+openedx-events==9.18.1
     # via
     #   -r requirements/quality.txt
     #   event-tracking
@@ -486,7 +486,7 @@ protobuf==5.29.3
     #   googleapis-common-protos
     #   grpcio-status
     #   proto-plus
-psutil==6.1.1
+psutil==7.0.0
     # via
     #   -r requirements/quality.txt
     #   edx-django-utils
@@ -537,7 +537,7 @@ pytest==8.3.4
     #   pytest-django
 pytest-cov==6.0.0
     # via -r requirements/quality.txt
-pytest-django==4.9.0
+pytest-django==4.10.0
     # via -r requirements/quality.txt
 python-crontab==3.2.0
     # via
@@ -549,7 +549,6 @@ python-dateutil==2.9.0.post0
     #   celery
     #   edx-ace
     #   edx-event-routing-backends
-    #   faker
     #   python-crontab
     #   xblock
 python-slugify==8.0.4
@@ -575,7 +574,7 @@ redis==5.2.1
     # via
     #   -r requirements/quality.txt
     #   django-redis
-reportlab==4.3.0
+reportlab==4.3.1
     # via -r requirements/quality.txt
 requests==2.32.3
     # via
@@ -591,7 +590,7 @@ rsa==4.9
     # via
     #   -r requirements/quality.txt
     #   google-auth
-ruff==0.9.5
+ruff==0.9.6
     # via -r requirements/quality.txt
 sailthru-client==2.2.3
     # via
@@ -608,8 +607,9 @@ setuptools==75.8.0
     #   edx-completion
     #   edx-event-routing-backends
     #   fs
+    #   openedx-events
     #   pbr
-simplejson==3.19.3
+simplejson==3.20.1
     # via
     #   -r requirements/quality.txt
     #   sailthru-client
@@ -647,18 +647,18 @@ tox==4.24.1
     # via
     #   -r requirements/ci.txt
     #   tox-uv
-tox-uv==1.23.0
+tox-uv==1.23.2
     # via -r requirements/ci.txt
 typing-extensions==4.12.2
     # via
     #   -r requirements/quality.txt
     #   edx-opaque-keys
-    #   faker
 tzdata==2025.1
     # via
     #   -r requirements/quality.txt
     #   celery
     #   django-celery-beat
+    #   faker
     #   kombu
 uritemplate==4.1.1
     # via
@@ -669,7 +669,7 @@ urllib3==2.2.3
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/quality.txt
     #   requests
-uv==0.5.29
+uv==0.6.0
     # via
     #   -r requirements/ci.txt
     #   -r requirements/pip.txt
@@ -680,7 +680,7 @@ vine==5.1.0
     #   amqp
     #   celery
     #   kombu
-virtualenv==20.29.1
+virtualenv==20.29.2
     # via
     #   -r requirements/ci.txt
     #   tox
