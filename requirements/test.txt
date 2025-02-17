@@ -87,7 +87,7 @@ code-annotations==2.2.0
     #   -r requirements/base.txt
     #   -r requirements/test.in
     #   edx-toggles
-coverage==7.6.11
+coverage==7.6.12
     # via
     #   django-coverage-plugin
     #   pytest-cov
@@ -95,7 +95,7 @@ cron-descriptor==1.4.5
     # via
     #   -r requirements/base.txt
     #   django-celery-beat
-cryptography==44.0.0
+cryptography==44.0.1
     # via
     #   -r requirements/base.txt
     #   django-fernet-fields-v2
@@ -131,7 +131,7 @@ dj-inmemorystorage==2.1.0
     #   openedx-filters
 django-celery-beat==2.7.0
     # via -r requirements/base.txt
-django-config-models==2.7.0
+django-config-models==2.8.0
     # via
     #   -r requirements/base.txt
     #   edx-event-routing-backends
@@ -231,7 +231,7 @@ edx-opaque-keys==2.11.0
     #   openedx-completion-aggregator
     #   openedx-events
     #   openedx-filters
-edx-toggles==5.2.0
+edx-toggles==5.3.0
     # via
     #   -r requirements/base.txt
     #   edx-completion
@@ -246,7 +246,7 @@ event-tracking==3.0.0
     #   openedx-completion-aggregator
 factory-boy==3.3.3
     # via -r requirements/test.in
-faker==35.2.0
+faker==36.1.1
     # via factory-boy
 fastavro==1.10.0
     # via
@@ -272,7 +272,7 @@ google-api-core==2.24.1
     #   google-cloud-core
     #   google-cloud-firestore
     #   google-cloud-storage
-google-api-python-client==2.160.0
+google-api-python-client==2.161.0
     # via
     #   -r requirements/base.txt
     #   firebase-admin
@@ -311,7 +311,7 @@ google-resumable-media==2.7.2
     # via
     #   -r requirements/base.txt
     #   google-cloud-storage
-googleapis-common-protos==1.66.0
+googleapis-common-protos==1.67.0
     # via
     #   -r requirements/base.txt
     #   google-api-core
@@ -353,7 +353,7 @@ kombu==5.4.2
     # via
     #   -r requirements/base.txt
     #   celery
-lxml==5.3.0
+lxml==5.3.1
     # via
     #   -r requirements/base.txt
     #   xblock
@@ -377,7 +377,7 @@ newrelic==10.6.0
     #   edx-django-utils
 openedx-completion-aggregator==4.2.0
     # via -r requirements/base.txt
-openedx-events==9.17.0
+openedx-events==9.18.1
     # via
     #   -r requirements/base.txt
     #   event-tracking
@@ -414,7 +414,7 @@ protobuf==5.29.3
     #   googleapis-common-protos
     #   grpcio-status
     #   proto-plus
-psutil==6.1.1
+psutil==7.0.0
     # via
     #   -r requirements/base.txt
     #   edx-django-utils
@@ -458,7 +458,7 @@ pytest==8.3.4
     #   pytest-django
 pytest-cov==6.0.0
     # via -r requirements/test.in
-pytest-django==4.9.0
+pytest-django==4.10.0
     # via -r requirements/test.in
 python-crontab==3.2.0
     # via
@@ -470,7 +470,6 @@ python-dateutil==2.9.0.post0
     #   celery
     #   edx-ace
     #   edx-event-routing-backends
-    #   faker
     #   python-crontab
     #   xblock
 python-slugify==8.0.4
@@ -494,7 +493,7 @@ redis==5.2.1
     # via
     #   -r requirements/base.txt
     #   django-redis
-reportlab==4.3.0
+reportlab==4.3.1
     # via -r requirements/base.txt
 requests==2.32.3
     # via
@@ -524,8 +523,9 @@ setuptools==75.8.0
     #   edx-completion
     #   edx-event-routing-backends
     #   fs
+    #   openedx-events
     #   pbr
-simplejson==3.19.3
+simplejson==3.20.1
     # via
     #   -r requirements/base.txt
     #   sailthru-client
@@ -563,12 +563,12 @@ typing-extensions==4.12.2
     # via
     #   -r requirements/base.txt
     #   edx-opaque-keys
-    #   faker
 tzdata==2025.1
     # via
     #   -r requirements/base.txt
     #   celery
     #   django-celery-beat
+    #   faker
     #   kombu
 uritemplate==4.1.1
     # via
