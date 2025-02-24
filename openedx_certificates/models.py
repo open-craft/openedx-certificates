@@ -162,10 +162,11 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
         filtered_user_ids_set = set(user_ids) - set(users_ids_with_certificates)
         return list(filtered_user_ids_set)
 
-    def get_eligible_user_ids(self) -> list[int]:
+    def get_eligible_user_ids(self, user_id: int = None) -> list[int]:
         """
         Get the list of eligible learners for the given course.
 
+        :param user_id: Optional. If provided, will check eligibility for the specific user.
         :return: A list of user IDs.
         """
         func_path = self.certificate_type.retrieval_func
@@ -174,7 +175,7 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
         func = getattr(module, func_name)
 
         custom_options = {**self.certificate_type.custom_options, **self.custom_options}
-        return func(self.course_id, custom_options)
+        return func(self.course_id, custom_options, user_id=user_id)
 
     def generate_certificate_for_user(self, user_id: int, celery_task_id: int = 0):
         """
