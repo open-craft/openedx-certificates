@@ -19,5 +19,9 @@ class OpenedxCertificatesConfig(AppConfig):
                 'common': {'relative_path': 'settings.common'},
                 'production': {'relative_path': 'settings.production'},
             },
+            'cms.djangoapp': {
+                'common': {'relative_path': 'settings.common'},
+                'production': {'relative_path': 'settings.production'},
+            },
         },
     }
