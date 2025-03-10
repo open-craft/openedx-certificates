@@ -54,12 +54,21 @@ def get_course_name(course_id: CourseKey) -> str:
     return (course_outline and course_outline.title) or str(course_id)
 
 
-def get_course_enrollments(course_id: CourseKey) -> list[User]:
-    """Get the course enrollments from Open edX."""
+def get_course_enrollments(course_id: CourseKey, user_id: int = None) -> list[User]:
+    """
+    Get the course enrollments from Open edX.
+
+    :param course_id: The course ID.
+    :param user_id: Optional. If provided, will filter the enrollments by user.
+    :return: A list of users enrolled in the course.
+    """
     # noinspection PyUnresolvedReferences,PyPackageRequirements
     from common.djangoapps.student.models import CourseEnrollment
 
     enrollments = CourseEnrollment.objects.filter(course_id=course_id, is_active=True).select_related('user')
+    if user_id:
+        enrollments = enrollments.filter(user__id=user_id)
+
     return [enrollment.user for enrollment in enrollments]
 
 

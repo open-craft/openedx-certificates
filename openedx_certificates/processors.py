@@ -115,12 +115,13 @@ def _are_grades_passing_criteria(
     return total_score >= required_grades.get('total', 0)
 
 
-def retrieve_subsection_grades(course_id: CourseKey, options: dict[str, Any]) -> list[int]:
+def retrieve_subsection_grades(course_id: CourseKey, options: dict[str, Any], user_id: int = None) -> list[int]:
     """
     Retrieve the users that have passing grades in all required categories.
 
     :param course_id: The course ID.
     :param options: The custom options for the certificate.
+    :param user_id: Optional. If provided, will check the eligibility for the specific user.
     :returns: The IDs of the users that have passing grades in all required categories.
 
     Options:
@@ -148,7 +149,7 @@ def retrieve_subsection_grades(course_id: CourseKey, options: dict[str, Any]) ->
     required_grades: dict[str, int] = options['required_grades']
     required_grades = {key.lower(): value * 100 for key, value in required_grades.items()}
 
-    users = get_course_enrollments(course_id)
+    users = get_course_enrollments(course_id, user_id)
     grades = _get_grades_by_format(course_id, users)
     log.debug(grades)
     weights = _get_category_weights(course_id)
@@ -188,7 +189,7 @@ def _prepare_request_to_completion_aggregator(course_id: CourseKey, query_params
     return view
 
 
-def retrieve_course_completions(course_id: CourseKey, options: dict[str, Any]) -> list[int]:
+def retrieve_course_completions(course_id: CourseKey, options: dict[str, Any], user_id: int = None) -> list[int]:
     """
     Retrieve the course completions for all users through the Completion Aggregator API.
 
@@ -219,5 +220,9 @@ def retrieve_course_completions(course_id: CourseKey, options: dict[str, Any]) -
             break
         query_params['page'] += 1
         view = _prepare_request_to_completion_aggregator(course_id, query_params.copy(), url)
+
+    if user_id:
+        username = get_user_model().objects.get(id=user_id).username
+        return [user_id] if username in completions else []
 
     return list(get_user_model().objects.filter(username__in=completions).values_list('id', flat=True))

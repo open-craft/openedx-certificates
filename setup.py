@@ -150,6 +150,10 @@ setup(
         "lms.djangoapp": [
             "openedx_certificates = openedx_certificates.apps:OpenedxCertificatesConfig",
         ],
+        "cms.djangoapp": [
+            "openedx_certificates = openedx_certificates.apps:OpenedxCertificatesConfig",
+        ],
+        'xblock.v1': 'certificates = openedx_certificates.xblocks:CertificatesXBlock',
     },
     include_package_data=True,
     install_requires=load_requirements(Path('requirements/base.in')),
