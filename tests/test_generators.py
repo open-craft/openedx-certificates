@@ -63,22 +63,22 @@ def test_register_font_with_custom_font(mock_register_font: Mock, mock_font_clas
 
 
 @pytest.mark.parametrize(
-    ("course_name", "options", "expected"),
+    ("resource_name", "options", "expected"),
     [
         ('Programming 101', {}, {}),  # No options - use default coordinates and colors.
         (
             'Programming 101',
             {
                 'name_y': 250,
-                'course_name_y': 200,
+                'resource_name_y': 200,
                 'issue_date_y': 150,
                 'name_color': '123',
-                'course_name_color': '#9B192A',
+                'resource_name_color': '#9B192A',
                 'issue_date_color': '#f59a8e',
             },
             {
                 'name_color': (17 / 255, 34 / 255, 51 / 255),
-                'course_name_color': (155 / 255, 25 / 255, 42 / 255),
+                'resource_name_color': (155 / 255, 25 / 255, 42 / 255),
                 'issue_date_color': (245 / 255, 154 / 255, 142 / 255),
             },
         ),  # Custom coordinates and colors.
@@ -86,10 +86,10 @@ def test_register_font_with_custom_font(mock_register_font: Mock, mock_font_clas
     ],
 )
 @patch('openedx_certificates.generators.canvas.Canvas', return_value=Mock(stringWidth=Mock(return_value=10)))
-def test_write_text_on_template(mock_canvas_class: Mock, course_name: str, options: dict[str, int], expected: dict):
+def test_write_text_on_template(mock_canvas_class: Mock, resource_name: str, options: dict[str, int], expected: dict):
     """Test the _write_text_on_template function."""
     username = 'John Doe'
-    course_name = 'Programming 101'
+    resource_name = 'Programming 101'
     template_height = 300
     template_width = 200
     font = 'Helvetica'
@@ -104,7 +104,7 @@ def test_write_text_on_template(mock_canvas_class: Mock, course_name: str, optio
 
     # Call the function with test parameters and mocks
     with patch('openedx_certificates.generators.get_localized_certificate_date', return_value=test_date):
-        _write_text_on_template(template_mock, font, username, course_name, options)
+        _write_text_on_template(template_mock, font, username, resource_name, options)
 
     # Verifying that Canvas was the correct pagesize.
     # Use `call_args_list` to ignore the first argument, which is an instance of io.BytesIO.
@@ -116,18 +116,18 @@ def test_write_text_on_template(mock_canvas_class: Mock, course_name: str, optio
     # Expected coordinates for drawString method, based on fixed stringWidth
     expected_name_x = (template_width - string_width) / 2
     expected_name_y = options.get('name_y', 290)
-    expected_course_name_x = (template_width - string_width) / 2
-    expected_course_name_y = options.get('course_name_y', 220)
+    expected_resource_name_x = (template_width - string_width) / 2
+    expected_resource_name_y = options.get('resource_name_y', 220)
     expected_issue_date_x = (template_width - string_width) / 2
     expected_issue_date_y = options.get('issue_date_y', 120)
 
     # Expected colors for setFillColorRGB method
     expected_name_color = expected.get('name_color', (0, 0, 0))
-    expected_course_name_color = expected.get('course_name_color', (0, 0, 0))
+    expected_resource_name_color = expected.get('resource_name_color', (0, 0, 0))
     expected_issue_date_color = expected.get('issue_date_color', (0, 0, 0))
 
     # The number of calls to drawString should be 2 (name and issue date) + number of lines in course name.
-    assert canvas_object.drawString.call_count == 3 + course_name.count('\n')
+    assert canvas_object.drawString.call_count == 3 + resource_name.count('\n')
 
     # Check the calls to setFont, setFillColorRGB and drawString methods on Canvas object
     assert canvas_object.setFont.call_args_list[0] == call(font, 32)
@@ -136,16 +136,16 @@ def test_write_text_on_template(mock_canvas_class: Mock, course_name: str, optio
     assert mock_canvas_class.return_value.stringWidth.mock_calls[0][1] == (username,)
 
     assert canvas_object.setFont.call_args_list[1] == call(font, 28)
-    assert canvas_object.setFillColorRGB.call_args_list[1] == call(*expected_course_name_color)
+    assert canvas_object.setFillColorRGB.call_args_list[1] == call(*expected_resource_name_color)
 
     assert canvas_object.setFont.call_args_list[2] == call(font, 12)
     assert canvas_object.setFillColorRGB.call_args_list[2] == call(*expected_issue_date_color)
 
-    for line_number, line in enumerate(course_name.split('\n')):
+    for line_number, line in enumerate(resource_name.split('\n')):
         assert mock_canvas_class.return_value.stringWidth.mock_calls[line_number + 1][1] == (line,)
         assert canvas_object.drawString.mock_calls[1 + line_number][1] == (
-            expected_course_name_x,
-            expected_course_name_y - (line_number * 28 * 1.1),
+            expected_resource_name_x,
+            expected_resource_name_y - (line_number * 28 * 1.1),
             line,
         )
 
@@ -216,8 +216,56 @@ def test_save_certificate(mock_contentfile: Mock, mock_token_hex: Mock, storage:
         assert url == f'https://example2.com/{certificate_uuid}.pdf'
 
 
+@patch('openedx_certificates.generators.apps.is_installed', return_value=True)
+@patch('openedx_certificates.generators.apps.get_model')
+@patch('openedx_certificates.generators.ExternalCertificateAsset.get_asset_by_slug')
+@patch('openedx_certificates.generators.PdfReader')
+@patch('openedx_certificates.generators.PdfWriter')
+@patch('openedx_certificates.generators._write_text_on_template')
+@patch('openedx_certificates.generators._save_certificate')
+def test_generate_pdf_certificate_for_learning_path(  # noqa: PLR0913
+    mock_save_certificate: Mock,
+    mock_write_text_on_template: Mock,
+    mock_pdf_writer: Mock,
+    mock_pdf_reader: Mock,
+    mock_get_asset_by_slug: Mock,
+    mock_get_model: Mock,
+    mock_is_installed: Mock,
+):
+    """Test generate_pdf_certificate function for Learning Paths."""
+    resource_id = "learning-path-uuid"
+    resource_type = "learning_path"
+    user = Mock()
+    certificate_uuid = uuid4()
+    options = {"template": "template_slug", "resource_name": "Learning Path Name"}
+    mock_get_asset_by_slug.return_value = Mock(
+        open=Mock(
+            return_value=Mock(
+                __enter__=Mock(return_value=Mock(read=Mock(return_value=b'pdf_data'))),
+                __exit__=Mock(return_value=None),
+            ),
+        ),
+    )
+    mock_write_text_on_template.return_value = Mock(getpdfdata=Mock(return_value=b'pdf_data'))
+
+    learning_path_mock = Mock(display_name="Learning Path Name")
+    mock_get_model.return_value.objects.get.return_value = learning_path_mock
+
+    result = generate_pdf_certificate(resource_id, resource_type, user, certificate_uuid, options)
+
+    assert result == mock_save_certificate.return_value
+    assert mock_pdf_reader.call_count == 2
+    mock_pdf_writer.assert_called_once_with()
+    mock_is_installed.assert_called_with('learning_paths')
+    mock_get_model.assert_called_once_with('learning_paths', 'LearningPath')
+    mock_get_model.return_value.objects.get.assert_called_once_with(uuid=resource_id)
+    mock_get_asset_by_slug.assert_called_once_with(options["template"])
+    mock_write_text_on_template.assert_called_once()
+    mock_save_certificate.assert_called_once()
+
+
 @pytest.mark.parametrize(
-    ("course_name", "options", "expected_template_slug", "expected_course_name"),
+    ("resource_name", "options", "expected_template_slug", "expected_resource_name"),
     [
         # Default.
         ('Test Course', {'template': 'template_slug'}, 'template_slug', 'Test Course'),
@@ -231,9 +279,9 @@ def test_save_certificate(mock_contentfile: Mock, mock_token_hex: Mock, storage:
         # Do not replace semicolon with newline when the `template_two_lines` option is not specified.
         ('Test Course; Test Course', {'template': 'template_slug'}, 'template_slug', 'Test Course; Test Course'),
         # Override course name.
-        ('Test Course', {'template': 'template_slug', 'course_name': 'Override'}, 'template_slug', 'Override'),
+        ('Test Course', {'template': 'template_slug', 'resource_name': 'Override'}, 'template_slug', 'Override'),
         # Ignore empty course name override.
-        ('Test Course', {'template': 'template_slug', 'course_name': ''}, 'template_slug', 'Test Course'),
+        ('Test Course', {'template': 'template_slug', 'resource_name': ''}, 'template_slug', 'Test Course'),
     ],
 )
 @patch(
@@ -266,22 +314,22 @@ def test_generate_pdf_certificate(  # noqa: PLR0913
     mock_get_course_name: Mock,
     mock_get_user_name: Mock,
     mock_get_asset_by_slug: Mock,
-    course_name: str,
+    resource_name: str,
     options: dict[str, str],
     expected_template_slug: str,
-    expected_course_name: str,
+    expected_resource_name: str,
 ):
     """Test the generate_pdf_certificate function."""
     course_id = CourseKey.from_string('course-v1:edX+DemoX+Demo_Course')
     user = Mock()
-    mock_get_course_name.return_value = course_name
+    mock_get_course_name.return_value = resource_name
 
-    result = generate_pdf_certificate(course_id, user, Mock(), options)
+    result = generate_pdf_certificate(course_id, 'course', user, Mock(), options)
 
     assert result == 'certificate_url'
     mock_get_asset_by_slug.assert_called_with(expected_template_slug)
     mock_get_user_name.assert_called_once_with(user)
-    if options.get('course_name'):
+    if options.get('resource_name'):
         mock_get_course_name.assert_not_called()
     else:
         mock_get_course_name.assert_called_once_with(course_id)
@@ -291,7 +339,7 @@ def test_generate_pdf_certificate(  # noqa: PLR0913
 
     mock_write_text_on_template.assert_called_once()
     _, args, _kwargs = mock_write_text_on_template.mock_calls[0]
-    assert args[-2] == expected_course_name
+    assert args[-2] == expected_resource_name
     assert args[-1] == options
 
     mock_save_certificate.assert_called_once()

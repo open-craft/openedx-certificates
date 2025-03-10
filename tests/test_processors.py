@@ -2,19 +2,21 @@
 
 from __future__ import annotations
 
-from unittest.mock import Mock, call, patch
+from unittest.mock import MagicMock, Mock, call, patch
 
 import pytest
 from django.http import QueryDict
 from opaque_keys.edx.keys import CourseKey
 
 # noinspection PyProtectedMember
+from openedx_certificates.models import ExternalCertificateConfiguration
 from openedx_certificates.processors import (
     _are_grades_passing_criteria,
     _get_category_weights,
     _get_grades_by_format,
     _prepare_request_to_completion_aggregator,
     retrieve_course_completions,
+    retrieve_learner_paths_eligible_users,
     retrieve_subsection_grades,
 )
 
@@ -279,3 +281,59 @@ def test_retrieve_course_completions(mock_get_user_model: Mock, mock_prepare_req
     mock_view_page1.get.assert_called_once_with(mock_view_page1.request, str(course_id))
     mock_view_page2.get.assert_called_once_with(mock_view_page2.request, str(course_id))
     mock_user_model.objects.filter.assert_called_once_with(username__in=['user1', 'user3'])
+
+
+@patch('openedx_certificates.processors.apps.is_installed', return_value=True)
+@patch('openedx_certificates.processors.apps.get_model')
+@patch('openedx_certificates.processors.ExternalCertificateConfiguration.objects.get')
+@patch('openedx_certificates.processors.retrieve_course_completions')
+def test_retrieve_learner_paths_eligible_users(
+    mock_retrieve_course_completions: Mock,
+    mock_config_get: Mock,
+    mock_get_model: Mock,
+    mock_is_installed: Mock,
+):
+    """Test that eligible users for a learning path are correctly retrieved."""
+    lp_uuid = "sample-uuid"
+    options = {
+        "course_options": {
+            "course1": {"required_completion": 0.9},
+            "course2": {"required_completion": 0.8},
+        },
+    }
+
+    mock_learning_path_step_model = Mock()
+    mock_get_model.return_value = mock_learning_path_step_model
+
+    mock_step1 = Mock(course_key="course1")
+    mock_step2 = Mock(course_key="course2")
+
+    mock_queryset = MagicMock()
+    mock_queryset.exists.return_value = True
+    mock_queryset.__iter__.return_value = iter([mock_step1, mock_step2])
+    mock_learning_path_step_model.objects.filter.return_value = mock_queryset
+
+    def config_get_side_effect(*args, **kwargs):  # noqa: ANN202, ARG001
+        resource_id = kwargs.get('resource_id')
+        if resource_id == 'course1':
+            mock_config = Mock()
+            mock_config.get_eligible_user_ids.return_value = [1, 2]
+            return mock_config
+        raise ExternalCertificateConfiguration.DoesNotExist
+
+    mock_config_get.side_effect = config_get_side_effect
+
+    mock_retrieve_course_completions.return_value = [2, 3]
+
+    result = retrieve_learner_paths_eligible_users(lp_uuid, options)
+
+    assert result == [2]
+    mock_is_installed.assert_called_once_with("learning_paths")
+    mock_get_model.assert_called_once_with("learning_paths", "LearningPathStep")
+    mock_learning_path_step_model.objects.filter.assert_called_once_with(learning_path__uuid=lp_uuid)
+
+    assert mock_config_get.call_count == 2
+    assert mock_config_get.call_args_list[0].kwargs['resource_id'] == 'course1'
+    assert mock_config_get.call_args_list[1].kwargs['resource_id'] == 'course2'
+
+    mock_retrieve_course_completions.assert_called_once_with("course2", {"required_completion": 0.8})

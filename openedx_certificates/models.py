@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 import jsonfield
+from django.apps import apps
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ValidationError
@@ -20,7 +21,6 @@ from django.utils.translation import gettext_lazy as _
 from django_celery_beat.models import IntervalSchedule, PeriodicTask
 from edx_ace import Message, Recipient, ace
 from model_utils.models import TimeStampedModel
-from opaque_keys.edx.django.models import CourseKeyField
 
 from openedx_certificates.compat import get_course_name
 from openedx_certificates.exceptions import AssetNotFoundError, CertificateGenerationError
@@ -68,14 +68,31 @@ class ExternalCertificateType(TimeStampedModel):
                 ) from exc
 
 
-class ExternalCertificateCourseConfiguration(TimeStampedModel):
+class ExternalCertificateConfiguration(TimeStampedModel):
     """
-    Model to store course-specific certificate configurations for each certificate type.
+    Model to store resource-specific certificate configurations.
 
     .. no_pii:
     """
 
-    course_id = CourseKeyField(max_length=255, help_text=_('The ID of the course.'))
+    class ResourceTypes(models.TextChoices):
+        """Types of resources for which certificates can be issued."""
+
+        COURSE = 'course', _('Course')
+        LEARNING_PATH = 'learning_path', _('Learning Path')
+
+    resource_id = models.CharField(  # noqa: DJ001
+        max_length=255,
+        null=True,
+        blank=True,
+        help_text=_('The ID of the resource (e.g., course_id, learner_path_uuid).'),
+    )
+    resource_type = models.CharField(
+        max_length=50,
+        choices=ResourceTypes.choices,
+        default=ResourceTypes.COURSE,
+        help_text=_('The type of the resource.'),
+    )
     certificate_type = models.ForeignKey(
         ExternalCertificateType,
         on_delete=models.CASCADE,
@@ -96,24 +113,26 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
     )
 
     class Meta:  # noqa: D106
-        unique_together = (('course_id', 'certificate_type'),)
+        unique_together = (('resource_id', 'certificate_type'),)
 
     def __str__(self):  # noqa: D105
-        return f'{self.certificate_type.name} in {self.course_id}'
+        resource_desc = f'{self.resource_type.capitalize()} {self.resource_id}'
+        return f'{self.certificate_type.name} for {resource_desc}'
 
     def save(self, *args, **kwargs):
-        """Create a new PeriodicTask every time a new ExternalCertificateCourseConfiguration is created."""
-        from openedx_certificates.tasks import generate_certificates_for_course_task as task  # Avoid circular imports.
+        """Create a new PeriodicTask every time a new ExternalCertificateConfiguration is created."""
+        from openedx_certificates.tasks import generate_certificates_task as task  # Avoid circular imports.
 
         # Use __wrapped__ to get the original function, as the task is wrapped by the @app.task decorator.
         task_path = f"{task.__wrapped__.__module__}.{task.__wrapped__.__name__}"
 
         if self._state.adding:
             schedule, created = IntervalSchedule.objects.get_or_create(every=10, period=IntervalSchedule.DAYS)
+            resource_desc = f'{self.resource_type.capitalize()} {self.resource_id}'
             self.periodic_task = PeriodicTask.objects.create(
                 enabled=False,
                 interval=schedule,
-                name=f'{self.certificate_type} in {self.course_id}',
+                name=f'{self.certificate_type.name} for {resource_desc}',
                 task=task_path,
             )
 
@@ -121,40 +140,40 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
 
         # Update the task on each save to prevent it from getting out of sync (e.g., after changing a task definition).
         self.periodic_task.task = task_path
-        # Update the args of the PeriodicTask to include the ID of the ExternalCertificateCourseConfiguration.
+        # Update the args of the PeriodicTask to include the ID of the ExternalCertificateConfiguration.
         self.periodic_task.args = json.dumps([self.id])
         self.periodic_task.save()
 
     # Replace the return type with `QuerySet[Self]` after migrating to Python 3.10+.
     @classmethod
-    def get_enabled_configurations(cls) -> QuerySet[ExternalCertificateCourseConfiguration]:
+    def get_enabled_configurations(cls) -> QuerySet[ExternalCertificateConfiguration]:
         """
         Get the list of enabled configurations.
 
-        :return: A list of ExternalCertificateCourseConfiguration objects.
+        :return: A list of ExternalCertificateConfiguration objects.
         """
-        return ExternalCertificateCourseConfiguration.objects.filter(periodic_task__enabled=True)
+        return ExternalCertificateConfiguration.objects.filter(periodic_task__enabled=True)
 
     def generate_certificates(self):
         """This method allows manual certificate generation from the Django admin."""
         user_ids = self.get_eligible_user_ids()
-        log.info("The following users are eligible in %s: %s", self.course_id, user_ids)
+        log.info("The following users are eligible in %s: %s", self.resource_id, user_ids)
         filtered_user_ids = self.filter_out_user_ids_with_certificates(user_ids)
-        log.info("The filtered users eligible in %s: %s", self.course_id, filtered_user_ids)
+        log.info("The filtered users eligible in %s: %s", self.resource_id, filtered_user_ids)
         for user_id in filtered_user_ids:
             self.generate_certificate_for_user(user_id)
 
     def filter_out_user_ids_with_certificates(self, user_ids: list[int]) -> list[int]:
         """
-        Filter out user IDs that already have a certificate for this course and certificate type.
+        Filter out user IDs that already have a certificate for this resource and certificate type.
 
         :param user_ids: A list of user IDs to filter.
         :return: A list of user IDs that either:
-                 1. Do not have a certificate for this course and certificate type.
+                 1. Do not have a certificate for this resource and certificate type.
                  2. Have such a certificate with an error status.
         """
         users_ids_with_certificates = ExternalCertificate.objects.filter(
-            models.Q(course_id=self.course_id),
+            models.Q(resource_id=self.resource_id),
             models.Q(certificate_type=self.certificate_type),
             ~(models.Q(status=ExternalCertificate.Status.ERROR)),
         ).values_list('user_id', flat=True)
@@ -174,13 +193,13 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
         func = getattr(module, func_name)
 
         custom_options = {**self.certificate_type.custom_options, **self.custom_options}
-        return func(self.course_id, custom_options)
+        return func(self.resource_id, custom_options)
 
     def generate_certificate_for_user(self, user_id: int, celery_task_id: int = 0):
         """
         Celery task for processing a single user's certificate.
 
-        This function retrieves an ExternalCertificateCourse object based on course_id and certificate_type_id,
+        This function retrieves an ExternalCertificateConfig object based on resource_id and certificate_type_id,
         retrieves the data using the retrieval_func specified in the associated ExternalCertificateType object,
         and passes this data to the function specified in the generation_func field.
 
@@ -196,7 +215,7 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
 
         certificate, _ = ExternalCertificate.objects.update_or_create(
             user_id=user_id,
-            course_id=self.course_id,
+            resource_id=self.resource_id,
             certificate_type=self.certificate_type.name,
             defaults={
                 'user_full_name': user_full_name,
@@ -211,7 +230,7 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
             generation_func = getattr(generation_module, generation_func_name)
 
             # Run the functions. We do not validate them here, as they are validated in the model's clean() method.
-            certificate.download_url = generation_func(self.course_id, user, certificate.uuid, custom_options)
+            certificate.download_url = generation_func(self.resource_id, user, certificate.uuid, custom_options)
             certificate.status = ExternalCertificate.Status.AVAILABLE
             certificate.save()
         except Exception as exc:
@@ -227,7 +246,7 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
 
 
 # noinspection PyUnusedLocal
-@receiver(post_delete, sender=ExternalCertificateCourseConfiguration)
+@receiver(post_delete, sender=ExternalCertificateConfiguration)
 def post_delete_periodic_task(sender, instance, *_args, **_kwargs):  # noqa: ANN001, ARG001
     """Delete the associated periodic task when the object is deleted."""
     if instance.periodic_task:
@@ -236,9 +255,9 @@ def post_delete_periodic_task(sender, instance, *_args, **_kwargs):  # noqa: ANN
 
 class ExternalCertificate(TimeStampedModel):
     """
-    Model to represent each individual certificate awarded to a user for a course.
+    Model to represent each individual certificate awarded to a user for a resource.
 
-    This model contains information about the related course, the user who earned the certificate,
+    This model contains information about the related resource, the user who earned the certificate,
     the download URL for the certificate PDF, and the associated certificate generation task.
 
     .. note:: Certificates are identified by UUIDs rather than integer keys to prevent enumeration attacks
@@ -265,7 +284,18 @@ class ExternalCertificate(TimeStampedModel):
     )
     user_id = models.IntegerField(help_text=_('ID of the user receiving the certificate'))
     user_full_name = models.CharField(max_length=255, help_text=_('User receiving the certificate'))
-    course_id = CourseKeyField(max_length=255, help_text=_('ID of a course for which the certificate was issued'))
+    resource_id = models.CharField(
+        max_length=255,
+        help_text=_('ID of the resource (e.g., course, learning path)'),
+        null=False,
+        blank=False,
+    )
+    resource_type = models.CharField(
+        max_length=50,
+        choices=ExternalCertificateConfiguration.ResourceTypes.choices,
+        default=ExternalCertificateConfiguration.ResourceTypes.COURSE,
+        help_text=_('Type of the resource for which the certificate was issued'),
+    )
     certificate_type = models.CharField(max_length=255, help_text=_('Type of the certificate'))
     status = models.CharField(
         max_length=32,
@@ -278,14 +308,29 @@ class ExternalCertificate(TimeStampedModel):
     generation_task_id = models.CharField(max_length=255, help_text=_('Task ID from the Celery queue'))
 
     class Meta:  # noqa: D106
-        unique_together = (('user_id', 'course_id', 'certificate_type'),)
+        unique_together = (('user_id', 'resource_id', 'resource_type', 'certificate_type'),)
 
     def __str__(self):  # noqa: D105
-        return f"{self.certificate_type} for {self.user_full_name} in {self.course_id}"
+        return f"{self.certificate_type} for {self.user_full_name} in {self.resource_id}"
+
+    def get_resource_name(self) -> str:
+        """Retrieve the name of the resource based on its type."""
+        if self.resource_type == self.ResourceTypes.COURSE:
+            return get_course_name(self.resource_id)
+        elif self.resource_type == self.ResourceTypes.LEARNING_PATH:  # noqa: RET505
+            if not apps.is_installed('learning_paths'):
+                return ""
+            try:
+                LearningPath = apps.get_model('learning_paths', 'LearningPath')
+                return LearningPath.objects.get(uuid=self.resource_id).display_name
+            except Exception:  # noqa: BLE001
+                return ""
+        else:
+            return ""
 
     def send_email(self):
         """Send a certificate link to the student."""
-        course_name = get_course_name(self.course_id)
+        resource_name = self.get_resource_name()
         user = get_user_model().objects.get(id=self.user_id)
         msg = Message(
             name="certificate_generated",
@@ -294,7 +339,7 @@ class ExternalCertificate(TimeStampedModel):
             language='en',
             context={
                 'certificate_link': self.download_url,
-                'course_name': course_name,
+                'resource_name': resource_name,
                 'platform_name': settings.PLATFORM_NAME,
             },
         )
