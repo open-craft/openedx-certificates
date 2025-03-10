@@ -13,9 +13,9 @@ from django_celery_beat.models import PeriodicTask
 
 from openedx_certificates.exceptions import CertificateGenerationError
 from openedx_certificates.models import (
-    ExternalCertificate,
-    ExternalCertificateCourseConfiguration,
-    ExternalCertificateType,
+    LearningCredential,
+    LearningCredentialConfiguration,
+    LearningCredentialType,
 )
 from test_utils.factories import UserFactory
 
@@ -33,17 +33,17 @@ def _mock_generation_func(_course_id: CourseKey, _user: User, _certificate_uuid:
     return "test_url"
 
 
-class TestExternalCertificateType:
-    """Tests for the ExternalCertificateType model."""
+class TestLearningCredentialType:
+    """Tests for the LearningCredentialType model."""
 
     def test_str(self):
         """Test the string representation of the model."""
-        certificate_type = ExternalCertificateType(name="Test Type")
+        certificate_type = LearningCredentialType(name="Test Type")
         assert str(certificate_type) == "Test Type"
 
     def test_clean_with_valid_functions(self):
         """Test the clean method with valid function paths."""
-        certificate_type = ExternalCertificateType(
+        certificate_type = LearningCredentialType(
             name="Test Type",
             retrieval_func="test_models._mock_retrieval_func",
             generation_func="test_models._mock_generation_func",
@@ -53,7 +53,7 @@ class TestExternalCertificateType:
     @pytest.mark.parametrize("function_path", ["", "invalid_format_func"])
     def test_clean_with_invalid_function_format(self, function_path: str):
         """Test the clean method with invalid function format."""
-        certificate_type = ExternalCertificateType(
+        certificate_type = LearningCredentialType(
             name="Test Type",
             retrieval_func="test_models._mock_retrieval_func",
             generation_func=function_path,
@@ -64,7 +64,7 @@ class TestExternalCertificateType:
 
     def test_clean_with_invalid_function(self):
         """Test the clean method with invalid function paths."""
-        certificate_type = ExternalCertificateType(
+        certificate_type = LearningCredentialType(
             name="Test Type",
             retrieval_func="test_models._mock_retrieval_func",
             generation_func="invalid.module.path",
@@ -77,17 +77,17 @@ class TestExternalCertificateType:
         )
 
 
-class TestExternalCertificateCourseConfiguration:
-    """Tests for the ExternalCertificateCourseConfiguration model."""
+class TestLearningCredentialConfiguration:
+    """Tests for the LearningCredentialConfiguration model."""
 
     def setup_method(self):
         """Prepare the test data."""
-        self.certificate_type = ExternalCertificateType(
+        self.certificate_type = LearningCredentialType(
             name="Test Type",
             retrieval_func="test_models._mock_retrieval_func",
             generation_func="test_models._mock_generation_func",
         )
-        self.course_config = ExternalCertificateCourseConfiguration(
+        self.course_config = LearningCredentialConfiguration(
             course_id="course-v1:TestX+T101+2023",
             certificate_type=self.certificate_type,
         )
@@ -123,14 +123,14 @@ class TestExternalCertificateCourseConfiguration:
         assert PeriodicTask.objects.count() == 1
 
         self.course_config.periodic_task.delete()
-        assert not ExternalCertificateCourseConfiguration.objects.exists()
+        assert not LearningCredentialConfiguration.objects.exists()
 
     @pytest.mark.django_db
     @pytest.mark.parametrize(
         ("deleted_model", "verified_model"),
         [
-            (ExternalCertificateCourseConfiguration, PeriodicTask),  # `post_delete` signal.
-            (PeriodicTask, ExternalCertificateCourseConfiguration),  # Cascade deletion of the `OneToOneField`.
+            (LearningCredentialConfiguration, PeriodicTask),  # `post_delete` signal.
+            (PeriodicTask, LearningCredentialConfiguration),  # Cascade deletion of the `OneToOneField`.
         ],
     )
     def test_bulk_delete(self, deleted_model: type[Model], verified_model: type[Model]):
@@ -138,7 +138,7 @@ class TestExternalCertificateCourseConfiguration:
         self.certificate_type.save()
         self.course_config.save()
 
-        ExternalCertificateCourseConfiguration(
+        LearningCredentialConfiguration(
             course_id="course-v1:TestX+T101+2024",
             certificate_type=self.certificate_type,
         ).save()
@@ -167,34 +167,34 @@ class TestExternalCertificateCourseConfiguration:
             "certificate_type": self.certificate_type.name,
         }
 
-        ExternalCertificate.objects.create(
+        LearningCredential.objects.create(
             uuid=uuid4(),
             user_id=1,
-            status=ExternalCertificate.Status.GENERATING,
+            status=LearningCredential.Status.GENERATING,
             **cert_data,
         )
-        ExternalCertificate.objects.create(
+        LearningCredential.objects.create(
             uuid=uuid4(),
             user_id=2,
-            status=ExternalCertificate.Status.AVAILABLE,
+            status=LearningCredential.Status.AVAILABLE,
             **cert_data,
         )
-        ExternalCertificate.objects.create(
+        LearningCredential.objects.create(
             uuid=uuid4(),
             user_id=3,
-            status=ExternalCertificate.Status.ERROR,
+            status=LearningCredential.Status.ERROR,
             **cert_data,
         )
-        ExternalCertificate.objects.create(
+        LearningCredential.objects.create(
             uuid=uuid4(),
             user_id=4,
-            status=ExternalCertificate.Status.INVALIDATED,
+            status=LearningCredential.Status.INVALIDATED,
             **cert_data,
         )
-        ExternalCertificate.objects.create(
+        LearningCredential.objects.create(
             uuid=uuid4(),
             user_id=5,
-            status=ExternalCertificate.Status.ERROR,
+            status=LearningCredential.Status.ERROR,
             **cert_data,
         )
 
@@ -202,19 +202,19 @@ class TestExternalCertificateCourseConfiguration:
         assert filtered_users == [3, 6]
 
     @pytest.mark.django_db
-    @patch.object(ExternalCertificate, 'send_email')
+    @patch.object(LearningCredential, 'send_email')
     def test_generate_certificate_for_user(self, mock_send_email: Mock):
         """Test the generate_certificate_for_user method."""
         user = UserFactory.create()
         task_id = 123
 
         self.course_config.generate_certificate_for_user(user.id, task_id)
-        assert ExternalCertificate.objects.filter(
+        assert LearningCredential.objects.filter(
             user_id=user.id,
             course_id=self.course_config.learning_context_key,
             certificate_type=self.certificate_type,
             user_full_name=f"{user.first_name} {user.last_name}",
-            status=ExternalCertificate.Status.AVAILABLE,
+            status=LearningCredential.Status.AVAILABLE,
             generation_task_id=task_id,
             download_url="test_url",
         ).exists()
@@ -226,7 +226,7 @@ class TestExternalCertificateCourseConfiguration:
         user = UserFactory.create(is_active=False)
 
         self.course_config.generate_certificate_for_user(user.id, task_id)
-        assert ExternalCertificate.objects.filter(course_id=self.course_config.learning_context_key).count() == 2
+        assert LearningCredential.objects.filter(course_id=self.course_config.learning_context_key).count() == 2
         mock_send_email.assert_called_once()
 
         user = UserFactory.create()
@@ -234,32 +234,32 @@ class TestExternalCertificateCourseConfiguration:
         user.save()
 
         self.course_config.generate_certificate_for_user(user.id, task_id)
-        assert ExternalCertificate.objects.filter(course_id=self.course_config.learning_context_key).count() == 3
+        assert LearningCredential.objects.filter(course_id=self.course_config.learning_context_key).count() == 3
         mock_send_email.assert_called_once()
 
     @pytest.mark.django_db
-    @patch.object(ExternalCertificate, 'send_email')
+    @patch.object(LearningCredential, 'send_email')
     def test_generate_certificate_for_user_update_existing(self, mock_send_email: Mock):
         """Test the generate_certificate_for_user method updates an existing certificate."""
         user = UserFactory.create()
 
-        ExternalCertificate.objects.create(
+        LearningCredential.objects.create(
             user_id=user.id,
             course_id=self.course_config.learning_context_key,
             certificate_type=self.certificate_type,
             user_full_name="Random Name",
-            status=ExternalCertificate.Status.ERROR,
+            status=LearningCredential.Status.ERROR,
             generation_task_id=123,
             download_url="random_url",
         )
 
         self.course_config.generate_certificate_for_user(user.id)
-        assert ExternalCertificate.objects.filter(
+        assert LearningCredential.objects.filter(
             user_id=user.id,
             course_id=self.course_config.learning_context_key,
             certificate_type=self.certificate_type,
             user_full_name=f"{user.first_name} {user.last_name}",
-            status=ExternalCertificate.Status.AVAILABLE,
+            status=LearningCredential.Status.AVAILABLE,
             generation_task_id=0,
             download_url="test_url",
         ).exists()
@@ -283,29 +283,29 @@ class TestExternalCertificateCourseConfiguration:
             self.course_config.generate_certificate_for_user(user.id, task_id)
 
         assert 'Failed to generate the' in str(exc.value)
-        assert ExternalCertificate.objects.filter(
+        assert LearningCredential.objects.filter(
             user_id=user.id,
             course_id=self.course_config.learning_context_key,
             certificate_type=self.certificate_type,
             user_full_name=f"{user.first_name} {user.last_name}",
-            status=ExternalCertificate.Status.ERROR,
+            status=LearningCredential.Status.ERROR,
             generation_task_id=task_id,
             download_url='',
         ).exists()
 
 
-class TestExternalCertificate:
-    """Tests for the ExternalCertificate model."""
+class TestLearningCredential:
+    """Tests for the LearningCredential model."""
 
     def setup_method(self):
         """Prepare the test data."""
-        self.certificate = ExternalCertificate(
+        self.certificate = LearningCredential(
             uuid=uuid4(),
             user_id=1,
             user_full_name='Test User',
             course_id='course-v1:TestX+T101+2023',
             certificate_type='Test Type',
-            status=ExternalCertificate.Status.GENERATING,
+            status=LearningCredential.Status.GENERATING,
             download_url='http://www.test.com',
             generation_task_id='12345',
         )
@@ -324,9 +324,9 @@ class TestExternalCertificate:
             "user_full_name": 'Test User 2',
             "course_id": 'course-v1:TestX+T101+2023',
             "certificate_type": 'Test Type',
-            "status": ExternalCertificate.Status.GENERATING,
+            "status": LearningCredential.Status.GENERATING,
             "download_url": 'http://www.test2.com',
             "generation_task_id": '122345',
         }
         with pytest.raises(IntegrityError):
-            ExternalCertificate.objects.create(**certificate_2_info)
+            LearningCredential.objects.create(**certificate_2_info)

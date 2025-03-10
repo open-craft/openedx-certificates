@@ -8,6 +8,7 @@ import uuid
 from importlib import import_module
 from pathlib import Path
 from typing import TYPE_CHECKING
+from uuid import UUID
 
 import jsonfield
 from django.conf import settings
@@ -33,7 +34,7 @@ if TYPE_CHECKING:  # pragma: no cover
 log = logging.getLogger(__name__)
 
 
-class ExternalCertificateType(TimeStampedModel):
+class LearningCredentialType(TimeStampedModel):
     """
     Model to store global certificate configurations for each type.
 
@@ -68,7 +69,7 @@ class ExternalCertificateType(TimeStampedModel):
                 ) from exc
 
 
-class ExternalCertificateCourseConfiguration(TimeStampedModel):
+class LearningCredentialConfiguration(TimeStampedModel):
     """
     Model to store course-specific certificate configurations for each certificate type.
 
@@ -80,7 +81,7 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
         help_text=_('The ID of the course or learning path.'),
     )
     certificate_type = models.ForeignKey(
-        ExternalCertificateType,
+        LearningCredentialType,
         on_delete=models.CASCADE,
         help_text=_('Associated certificate type.'),
     )
@@ -105,7 +106,7 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
         return f'{self.certificate_type.name} in {self.learning_context_key}'
 
     def save(self, *args, **kwargs):
-        """Create a new PeriodicTask every time a new ExternalCertificateCourseConfiguration is created."""
+        """Create a new PeriodicTask every time a new configuration is created."""
         from openedx_certificates.tasks import generate_certificates_for_course_task as task  # Avoid circular imports.
 
         # Use __wrapped__ to get the original function, as the task is wrapped by the @app.task decorator.
@@ -124,19 +125,19 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
 
         # Update the task on each save to prevent it from getting out of sync (e.g., after changing a task definition).
         self.periodic_task.task = task_path
-        # Update the args of the PeriodicTask to include the ID of the ExternalCertificateCourseConfiguration.
+        # Update the args of the PeriodicTask to include the ID of the configuration.
         self.periodic_task.args = json.dumps([self.id])
         self.periodic_task.save()
 
     # Replace the return type with `QuerySet[Self]` after migrating to Python 3.10+.
     @classmethod
-    def get_enabled_configurations(cls) -> QuerySet[ExternalCertificateCourseConfiguration]:
+    def get_enabled_configurations(cls) -> QuerySet[LearningCredentialConfiguration]:
         """
         Get the list of enabled configurations.
 
-        :return: A list of ExternalCertificateCourseConfiguration objects.
+        :return: A list of configuration objects.
         """
-        return ExternalCertificateCourseConfiguration.objects.filter(periodic_task__enabled=True)
+        return LearningCredentialConfiguration.objects.filter(periodic_task__enabled=True)
 
     def generate_certificates(self):
         """This method allows manual certificate generation from the Django admin."""
@@ -156,10 +157,10 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
                  1. Do not have a certificate for this course and certificate type.
                  2. Have such a certificate with an error status.
         """
-        users_ids_with_certificates = ExternalCertificate.objects.filter(
+        users_ids_with_certificates = LearningCredential.objects.filter(
             models.Q(learning_context_key=self.learning_context_key),
             models.Q(certificate_type=self.certificate_type),
-            ~(models.Q(status=ExternalCertificate.Status.ERROR)),
+            ~(models.Q(status=LearningCredential.Status.ERROR)),
         ).values_list('user_id', flat=True)
 
         filtered_user_ids_set = set(user_ids) - set(users_ids_with_certificates)
@@ -179,20 +180,23 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
         custom_options = {**self.certificate_type.custom_options, **self.custom_options}
         return func(self.learning_context_key, custom_options)
 
-    def generate_certificate_for_user(self, user_id: int, celery_task_id: int = 0) -> str | None:
+    def generate_certificate_for_user(self, user_id: int, celery_task_id: int = 0) -> UUID:
         """
-        Celery task for processing a single user's certificate.
+        Generate a certificate for a specific user in a learning context.
 
-        This function retrieves an ExternalCertificateCourse object based on course_id and certificate_type_id,
-        retrieves the data using the retrieval_func specified in the associated ExternalCertificateType object,
-        and passes this data to the function specified in the generation_func field.
+        This method retrieves or creates a LearningCredential record for the specified user,
+        then calls the generation function defined in the associated certificate type
+        to create the actual certificate.
 
         Args:
-            user_id: The ID of the user to process the certificate for.
-            celery_task_id (optional): The ID of the Celery task that is running this function.
+            user_id: The ID of the user to generate the certificate for.
+            celery_task_id: The ID of the Celery task that is processing this certificate.
 
         Returns:
             The UUID of the generated certificate.
+
+        Raises:
+            CertificateGenerationError: If the certificate generation fails.
         """
         user = get_user_model().objects.get(id=user_id)
         # Use the name from the profile if it is not empty. Otherwise, use the first and last name.
@@ -202,24 +206,24 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
         custom_options = {**self.certificate_type.custom_options, **self.custom_options}
 
         try:
-            certificate = ExternalCertificate.objects.exclude(status=ExternalCertificate.Status.INVALIDATED).get(
+            certificate = LearningCredential.objects.exclude(status=LearningCredential.Status.INVALIDATED).get(
                 user_id=user_id,
                 learning_context_key=self.learning_context_key,
                 certificate_type=self.certificate_type.name,
             )
             certificate.user_full_name = user_full_name
             certificate.course_name = course_name
-            certificate.status = ExternalCertificate.Status.GENERATING
+            certificate.status = LearningCredential.Status.GENERATING
             certificate.generation_task_id = celery_task_id
             certificate.save()
-        except ExternalCertificate.DoesNotExist:
-            certificate = ExternalCertificate.objects.create(
+        except LearningCredential.DoesNotExist:
+            certificate = LearningCredential.objects.create(
                 user_id=user_id,
                 user_full_name=user_full_name,
                 learning_context_key=self.learning_context_key,
                 course_name=course_name,
                 certificate_type=self.certificate_type.name,
-                status=ExternalCertificate.Status.GENERATING,
+                status=LearningCredential.Status.GENERATING,
                 generation_task_id=celery_task_id,
             )
 
@@ -230,10 +234,10 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
 
             # Run the functions. We do not validate them here, as they are validated in the model's clean() method.
             certificate.download_url = generation_func(self.learning_context_key, user, certificate.uuid, custom_options)
-            certificate.status = ExternalCertificate.Status.AVAILABLE
+            certificate.status = LearningCredential.Status.AVAILABLE
             certificate.save()
         except Exception as exc:
-            certificate.status = ExternalCertificate.Status.ERROR
+            certificate.status = LearningCredential.Status.ERROR
             certificate.save()
             msg = f'Failed to generate the {certificate.uuid=} for {user_id=} with {self.id=}.'
             raise CertificateGenerationError(msg) from exc
@@ -246,16 +250,16 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
 
 
 # noinspection PyUnusedLocal
-@receiver(post_delete, sender=ExternalCertificateCourseConfiguration)
+@receiver(post_delete, sender=LearningCredentialConfiguration)
 def post_delete_periodic_task(sender, instance, *_args, **_kwargs):  # noqa: ANN001, ARG001
     """Delete the associated periodic task when the object is deleted."""
     if instance.periodic_task:
         instance.periodic_task.delete()
 
 
-class ExternalCertificate(TimeStampedModel):
+class LearningCredential(TimeStampedModel):
     """
-    Model to represent each individual certificate awarded to a user for a course.
+    Model to represent each certificate awarded to a user for a course.
 
     This model contains information about the related course, the user who earned the certificate,
     the download URL for the certificate PDF, and the associated certificate generation task.
@@ -310,22 +314,22 @@ class ExternalCertificate(TimeStampedModel):
     def save(self, *args, **kwargs):
         """Invalidate the certificate if the `invalidation_reason` is set."""
         if self.invalidation_reason:
-            self.status = ExternalCertificate.Status.INVALIDATED
-        elif self.status == ExternalCertificate.Status.INVALIDATED:
+            self.status = LearningCredential.Status.INVALIDATED
+        elif self.status == LearningCredential.Status.INVALIDATED:
             if (
-                certificate := ExternalCertificate.objects.exclude(status=ExternalCertificate.Status.INVALIDATED)
+                certificate := LearningCredential.objects.exclude(status=LearningCredential.Status.INVALIDATED)
                 .filter(
                     user_id=self.user_id,
                     learning_context_key=self.learning_context_key,
                     certificate_type=self.certificate_type,
-                    status=ExternalCertificate.Status.AVAILABLE,
+                    status=LearningCredential.Status.AVAILABLE,
                 )
                 .first()
             ):
                 msg = f"You cannot remove the invalidation reason when a valid certificate exists ({certificate.uuid})."
                 raise ValidationError(msg)
 
-            self.status = ExternalCertificate.Status.AVAILABLE
+            self.status = LearningCredential.Status.AVAILABLE
 
         super().save(*args, **kwargs)
 
@@ -348,7 +352,7 @@ class ExternalCertificate(TimeStampedModel):
 
     def reissue_certificate(self):
         """Handle the reissuing of the certificate."""
-        certificate_config = ExternalCertificateCourseConfiguration.objects.get(
+        certificate_config = LearningCredentialConfiguration.objects.get(
             learning_context_key=self.learning_context_key,
             certificate_type__name=self.certificate_type,
         )
@@ -364,7 +368,7 @@ class ExternalCertificate(TimeStampedModel):
             self.save()
 
 
-class ExternalCertificateAsset(TimeStampedModel):
+class LearningCredentialAsset(TimeStampedModel):
     """
     A set of assets to be used in custom certificate templates.
 
@@ -427,7 +431,7 @@ class ExternalCertificateAsset(TimeStampedModel):
 
         :param asset_slug: The slug of the asset to be retrieved.
         :returns: The file associated with the asset slug.
-        :raises AssetNotFound: If no asset exists with the provided slug in the ExternalCertificateAsset database model.
+        :raises AssetNotFound: If no asset exists with the provided slug in the database model.
         """
         try:
             template_asset = cls.objects.get(asset_slug=asset_slug)

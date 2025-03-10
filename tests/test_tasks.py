@@ -19,7 +19,7 @@ def test_generate_certificate_for_user():
     task_id = 789
 
     with (
-        patch('openedx_certificates.models.ExternalCertificateCourseConfiguration.objects.get') as mock_get,
+        patch('openedx_certificates.models.LearningCredentialConfiguration.objects.get') as mock_get,
         patch(
             'openedx_certificates.tasks.generate_certificate_for_user_task',
         ) as mock_task,
@@ -45,7 +45,7 @@ def test_generate_certificates_for_course_with_filtering():
     filtered_user_ids = [1, 3]  # User IDs after filtering (e.g., users 2 and 4 already have certificates)
 
     with (
-        patch('openedx_certificates.models.ExternalCertificateCourseConfiguration.objects.get') as mock_get,
+        patch('openedx_certificates.models.LearningCredentialConfiguration.objects.get') as mock_get,
         patch(
             'openedx_certificates.tasks.generate_certificate_for_user_task.delay',
         ) as mock_delay,
@@ -76,7 +76,7 @@ def test_generate_all_certificates():
 
     with (
         patch(
-            'openedx_certificates.models.ExternalCertificateCourseConfiguration.get_enabled_configurations',
+            'openedx_certificates.models.LearningCredentialConfiguration.get_enabled_configurations',
             return_value=mock_queryset,
         ),
         patch('openedx_certificates.tasks.generate_certificates_for_course_task.delay') as mock_delay,

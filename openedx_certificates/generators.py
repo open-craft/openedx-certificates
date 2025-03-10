@@ -24,7 +24,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 
 from openedx_certificates.compat import get_course_name, get_default_storage_url, get_localized_certificate_date
-from openedx_certificates.models import ExternalCertificateAsset
+from openedx_certificates.models import LearningCredentialAsset
 
 log = logging.getLogger(__name__)
 
@@ -53,7 +53,7 @@ def _register_font(options: dict[str, Any]) -> str:
     :returns: The font name.
     """
     if font := options.get('font'):
-        pdfmetrics.registerFont(TTFont(font, ExternalCertificateAsset.get_asset_by_slug(font)))
+        pdfmetrics.registerFont(TTFont(font, LearningCredentialAsset.get_asset_by_slug(font)))
 
     return font or 'Helvetica'
 
@@ -190,13 +190,13 @@ def generate_pdf_certificate(course_id: CourseKey, user: User, certificate_uuid:
     username = _get_user_name(user)
     course_name = options.get('course_name') or get_course_name(course_id)
 
-    # Get template from the ExternalCertificateAsset.
+    # Get template from the assets.
     # HACK: We support two-line strings by using a semicolon as a separator.
     if ';' in course_name and (template_path := options.get('template_two_lines')):
-        template_file = ExternalCertificateAsset.get_asset_by_slug(template_path)
+        template_file = LearningCredentialAsset.get_asset_by_slug(template_path)
         course_name = course_name.replace(';', '\n')
     else:
-        template_file = ExternalCertificateAsset.get_asset_by_slug(options['template'])
+        template_file = LearningCredentialAsset.get_asset_by_slug(options['template'])
 
     font = _register_font(options)
 

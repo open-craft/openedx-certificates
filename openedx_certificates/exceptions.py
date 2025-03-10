@@ -2,7 +2,7 @@
 
 
 class AssetNotFoundError(Exception):
-    """Raised when the asset_slug is not found in the ExternalCertificateAsset model."""
+    """Raised when the asset_slug is not found in the LearningCredentialAsset model."""
 
 
 class CertificateGenerationError(Exception):

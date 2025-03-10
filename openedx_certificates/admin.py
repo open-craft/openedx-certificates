@@ -16,10 +16,10 @@ from opaque_keys import InvalidKeyError
 from opaque_keys.edx.keys import CourseKey
 
 from .models import (
-    ExternalCertificate,
-    ExternalCertificateAsset,
-    ExternalCertificateCourseConfiguration,
-    ExternalCertificateType,
+    LearningCredential,
+    LearningCredentialAsset,
+    LearningCredentialConfiguration,
+    LearningCredentialType,
 )
 from .tasks import generate_certificates_for_course_task
 
@@ -60,7 +60,7 @@ class DocstringOptionsMixin:
         return f'<pre>{docstring}</pre>'
 
 
-class ExternalCertificateTypeAdminForm(forms.ModelForm, DocstringOptionsMixin):
+class LearningCredentialTypeAdminForm(forms.ModelForm, DocstringOptionsMixin):
     """Generate a list of available functions for the function fields."""
 
     retrieval_func = forms.ChoiceField(choices=[])
@@ -101,25 +101,25 @@ class ExternalCertificateTypeAdminForm(forms.ModelForm, DocstringOptionsMixin):
             self.fields['generation_func'].help_text = self._get_docstring_custom_options(self.instance.generation_func)
 
     class Meta:  # noqa: D106
-        model = ExternalCertificateType
+        model = LearningCredentialType
         fields = '__all__'  # noqa: DJ007
 
 
-@admin.register(ExternalCertificateType)
-class ExternalCertificateTypeAdmin(admin.ModelAdmin):  # noqa: D101
-    form = ExternalCertificateTypeAdminForm
+@admin.register(LearningCredentialType)
+class LearningCredentialTypeAdmin(admin.ModelAdmin):  # noqa: D101
+    form = LearningCredentialTypeAdminForm
     list_display = ('name', 'retrieval_func', 'generation_func')
 
 
-@admin.register(ExternalCertificateAsset)
-class ExternalCertificateAssetAdmin(admin.ModelAdmin):  # noqa: D101
+@admin.register(LearningCredentialAsset)
+class LearningCredentialAssetAdmin(admin.ModelAdmin):  # noqa: D101
     list_display = ('description', 'asset_slug')
     prepopulated_fields = {"asset_slug": ("description",)}  # noqa: RUF012
 
 
-class ExternalCertificateCourseConfigurationForm(forms.ModelForm, DocstringOptionsMixin):  # noqa: D101
+class LearningCredentialConfigurationForm(forms.ModelForm, DocstringOptionsMixin):  # noqa: D101
     class Meta:  # noqa: D106
-        model = ExternalCertificateCourseConfiguration
+        model = LearningCredentialConfiguration
         fields = ('learning_context_key', 'certificate_type', 'custom_options')
 
     def __init__(self, *args, **kwargs):
@@ -148,8 +148,8 @@ class ExternalCertificateCourseConfigurationForm(forms.ModelForm, DocstringOptio
         return course_id
 
 
-@admin.register(ExternalCertificateCourseConfiguration)
-class ExternalCertificateCourseConfigurationAdmin(DjangoObjectActions, ReverseModelAdmin):
+@admin.register(LearningCredentialConfiguration)
+class LearningCredentialConfigurationAdmin(DjangoObjectActions, ReverseModelAdmin):
     """
     Admin page for the course-specific certificate configuration for each certificate type.
 
@@ -157,7 +157,7 @@ class ExternalCertificateCourseConfigurationAdmin(DjangoObjectActions, ReverseMo
     The reverse inline provides a way to manage the periodic task from the configuration page.
     """
 
-    form = ExternalCertificateCourseConfigurationForm
+    form = LearningCredentialConfigurationForm
     inline_type = 'stacked'
     inline_reverse = [  # noqa: RUF012
         (
@@ -172,7 +172,7 @@ class ExternalCertificateCourseConfigurationAdmin(DjangoObjectActions, ReverseMo
     def get_inline_instances(
         self,
         request: HttpRequest,
-        obj: ExternalCertificateCourseConfiguration = None,
+        obj: LearningCredentialConfiguration = None,
     ) -> list[admin.ModelAdmin]:
         """
         Hide inlines on the "Add" view in Django admin, and show them on the "Change" view.
@@ -186,39 +186,39 @@ class ExternalCertificateCourseConfigurationAdmin(DjangoObjectActions, ReverseMo
         """
         return super().get_inline_instances(request, obj) if '/add/' not in request.path else []
 
-    def enabled(self, obj: ExternalCertificateCourseConfiguration) -> bool:
+    def enabled(self, obj: LearningCredentialConfiguration) -> bool:
         """Return the 'enabled' status of the periodic task."""
         return obj.periodic_task.enabled
 
     enabled.boolean = True
 
     # noinspection PyMethodMayBeStatic
-    def interval(self, obj: ExternalCertificateCourseConfiguration) -> IntervalSchedule:
+    def interval(self, obj: LearningCredentialConfiguration) -> IntervalSchedule:
         """Return the interval of the certificate generation task."""
         return obj.periodic_task.interval
 
-    def get_readonly_fields(self, _request: HttpRequest, obj: ExternalCertificateCourseConfiguration = None) -> tuple:
+    def get_readonly_fields(self, _request: HttpRequest, obj: LearningCredentialConfiguration = None) -> tuple:
         """Make the course_id field read-only."""
         if obj:  # editing an existing object
             return *self.readonly_fields, 'course_id', 'certificate_type'
         return self.readonly_fields
 
     @action(label="Generate certificates")
-    def generate_certificates(self, _request: HttpRequest, obj: ExternalCertificateCourseConfiguration):
+    def generate_certificates(self, _request: HttpRequest, obj: LearningCredentialConfiguration):
         """
-        Custom action to generate certificates for the current ExternalCertificateCourse instance.
+        Custom action to generate certificates for the current LearningCredentialConfiguration instance.
 
         Args:
             _request: The request object.
-            obj: The ExternalCertificateCourse instance.
+            obj: The LearningCredentialConfiguration instance.
         """
         generate_certificates_for_course_task.delay(obj.id)
 
     change_actions = ('generate_certificates',)
 
 
-@admin.register(ExternalCertificate)
-class ExternalCertificateAdmin(DjangoObjectActions, admin.ModelAdmin):  # noqa: D101
+@admin.register(LearningCredential)
+class LearningCredentialAdmin(DjangoObjectActions, admin.ModelAdmin):  # noqa: D101
     list_display = (
         'user_id',
         'user_full_name',
@@ -254,23 +254,23 @@ class ExternalCertificateAdmin(DjangoObjectActions, admin.ModelAdmin):  # noqa: 
             # Optionally, redirect to the change form with the error message
             return
 
-    def get_form(self, request: HttpRequest, obj: ExternalCertificate | None = None, **kwargs) -> forms.ModelForm:
+    def get_form(self, request: HttpRequest, obj: LearningCredential | None = None, **kwargs) -> forms.ModelForm:
         """Hide the download_url field."""
         form = super().get_form(request, obj, **kwargs)
         form.base_fields['download_url'].widget = forms.HiddenInput()
         return form
 
     # noinspection PyMethodMayBeStatic
-    def url(self, obj: ExternalCertificate) -> str:
+    def url(self, obj: LearningCredential) -> str:
         """Display the download URL as a clickable link."""
         if obj.download_url:
             return format_html("<a href='{url}'>{url}</a>", url=obj.download_url)
         return "-"
 
     @action(label="Reissue certificate", description="Reissue the certificate for the user.")
-    def reissue_certificate(self, request: HttpRequest, obj: ExternalCertificate):
+    def reissue_certificate(self, request: HttpRequest, obj: LearningCredential):
         """Reissue the certificate for the user."""
         try:
             obj.reissue_certificate()
-        except ExternalCertificateCourseConfiguration.DoesNotExist:
+        except LearningCredentialConfiguration.DoesNotExist:
             messages.error(request, "The course configuration does not exist.")

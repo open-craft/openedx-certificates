@@ -38,7 +38,7 @@ def test_get_user_name():
     assert _get_user_name(user) == "First Last"
 
 
-@patch("openedx_certificates.generators.ExternalCertificateAsset.get_asset_by_slug")
+@patch("openedx_certificates.generators.LearningCredentialAsset.get_asset_by_slug")
 def test_register_font_without_custom_font(mock_get_asset_by_slug: Mock):
     """Test the _register_font falls back to the default font when no custom font is specified."""
     options = {}
@@ -46,7 +46,7 @@ def test_register_font_without_custom_font(mock_get_asset_by_slug: Mock):
     mock_get_asset_by_slug.assert_not_called()
 
 
-@patch("openedx_certificates.generators.ExternalCertificateAsset.get_asset_by_slug")
+@patch("openedx_certificates.generators.LearningCredentialAsset.get_asset_by_slug")
 @patch('openedx_certificates.generators.TTFont')
 @patch("openedx_certificates.generators.pdfmetrics.registerFont")
 def test_register_font_with_custom_font(mock_register_font: Mock, mock_font_class: Mock, mock_get_asset_by_slug: Mock):
@@ -237,7 +237,7 @@ def test_save_certificate(mock_contentfile: Mock, mock_token_hex: Mock, storage:
     ],
 )
 @patch(
-    'openedx_certificates.generators.ExternalCertificateAsset.get_asset_by_slug',
+    'openedx_certificates.generators.LearningCredentialAsset.get_asset_by_slug',
     return_value=Mock(
         open=Mock(
             return_value=Mock(

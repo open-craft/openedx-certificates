@@ -2,9 +2,9 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from openedx_certificates.models import ExternalCertificate
+from openedx_certificates.models import LearningCredential
 
-from .serializers import ExternalCertificateSerializer
+from .serializers import LearningCredentialSerializer
 
 
 @api_view(['GET'])
@@ -36,9 +36,9 @@ def get_certificate_metadata(request, uuid):
         }
     """
     try:
-        certificate = ExternalCertificate.objects.get(uuid=uuid)
-    except ExternalCertificate.DoesNotExist:
+        certificate = LearningCredential.objects.get(uuid=uuid)
+    except LearningCredential.DoesNotExist:
         return Response({'error': 'Certificate not found or not valid'}, status=status.HTTP_404_NOT_FOUND)
 
-    serializer = ExternalCertificateSerializer(certificate)
+    serializer = LearningCredentialSerializer(certificate)
     return Response(serializer.data, status=status.HTTP_200_OK)

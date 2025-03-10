@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
                 ('created', model_utils.fields.AutoCreatedField(default=django.utils.timezone.now, editable=False, verbose_name='created')),
                 ('modified', model_utils.fields.AutoLastModifiedField(default=django.utils.timezone.now, editable=False, verbose_name='modified')),
                 ('description', models.CharField(blank=True, help_text='Description of the asset.', max_length=255)),
-                ('asset', models.FileField(help_text='Asset file. It could be a PDF template, image or font file.', max_length=255, upload_to=openedx_certificates.models.ExternalCertificateAsset.template_assets_path)),
+                ('asset', models.FileField(help_text='Asset file. It could be a PDF template, image or font file.', max_length=255, upload_to=openedx_certificates.models.LearningCredentialAsset.template_assets_path)),
                 ('asset_slug', models.SlugField(help_text="Asset's unique slug. We can reference the asset in templates using this value.", max_length=255, unique=True)),
             ],
             options={

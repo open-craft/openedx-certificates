@@ -59,10 +59,10 @@ Decision
             color=lightgrey;
 
             // Resources/models
-            CertificateType [label="ExternalCertificateType"]
-            CourseConfiguration [label="ExternalCertificateCourseConfiguration"]
-            Certificate [label="ExternalCertificate"]
-            Asset [label="ExternalCertificateAsset"]
+            CertificateType [label="LearningCredentialType"]
+            Configuration [label="LearningCredentialConfiguration"]
+            Certificate [label="LearningCredential"]
+            Asset [label="LearningCredentialAsset"]
             PeriodicTask
             Schedule
 
@@ -72,12 +72,12 @@ Decision
 
             // DB relations
             edge [fontcolor=black, color=gray50]
-            CertificateType -> CourseConfiguration [dir=back, headlabel="0..*", taillabel="1   "]
-            CourseConfiguration -> PeriodicTask [dir=both, headlabel="1   ", taillabel="1"]
+            CertificateType -> Configuration [dir=back, headlabel="0..*", taillabel="1   "]
+            Configuration -> PeriodicTask [dir=both, headlabel="1   ", taillabel="1"]
 
             // Non-DB relations
             edge [fontcolor=black, color=blue]
-            CourseConfiguration -> Generation
+            Configuration -> Generation
             Asset -> Generation
             PeriodicTask -> Schedule
 
