@@ -112,7 +112,7 @@ cryptography==44.0.2
     #   -r requirements/quality.txt
     #   django-fernet-fields-v2
     #   pyjwt
-diff-cover==9.2.3
+diff-cover==9.2.4
     # via -r requirements/dev.in
 distlib==0.3.9
     # via
@@ -120,7 +120,7 @@ distlib==0.3.9
     #   virtualenv
 dj-inmemorystorage==2.1.0
     # via -r requirements/quality.txt
-django==4.2.19
+django==4.2.20
     # via
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/quality.txt
@@ -174,7 +174,7 @@ django-model-utils==5.0.0
     #   openedx-completion-aggregator
 django-object-actions==4.3.0
     # via -r requirements/quality.txt
-django-push-notifications==3.2.0
+django-push-notifications==3.2.1
     # via
     #   -r requirements/quality.txt
     #   edx-ace
@@ -268,7 +268,7 @@ event-tracking==3.0.0
     #   openedx-completion-aggregator
 factory-boy==3.3.3
     # via -r requirements/quality.txt
-faker==36.1.1
+faker==37.0.0
     # via
     #   -r requirements/quality.txt
     #   factory-boy
@@ -301,7 +301,7 @@ google-api-core==2.24.1
     #   google-cloud-core
     #   google-cloud-firestore
     #   google-cloud-storage
-google-api-python-client==2.162.0
+google-api-python-client==2.163.0
     # via
     #   -r requirements/quality.txt
     #   firebase-admin
@@ -340,7 +340,7 @@ google-resumable-media==2.7.2
     # via
     #   -r requirements/quality.txt
     #   google-cloud-storage
-googleapis-common-protos==1.68.0
+googleapis-common-protos==1.69.1
     # via
     #   -r requirements/quality.txt
     #   google-api-core
@@ -371,7 +371,7 @@ isodate==0.7.2
     # via
     #   -r requirements/quality.txt
     #   edx-event-routing-backends
-jinja2==3.1.5
+jinja2==3.1.6
     # via
     #   -r requirements/quality.txt
     #   code-annotations
@@ -411,7 +411,7 @@ mypy-extensions==1.0.0
     # via
     #   -r requirements/quality.txt
     #   black
-newrelic==10.6.0
+newrelic==10.7.0
     # via
     #   -r requirements/quality.txt
     #   edx-django-utils
@@ -590,7 +590,7 @@ rsa==4.9
     # via
     #   -r requirements/quality.txt
     #   google-auth
-ruff==0.9.9
+ruff==0.9.10
     # via -r requirements/quality.txt
 sailthru-client==2.2.3
     # via
@@ -600,7 +600,7 @@ semantic-version==2.10.0
     # via
     #   -r requirements/quality.txt
     #   edx-drf-extensions
-setuptools==75.8.2
+setuptools==76.0.0
     # via
     #   -r requirements/pip.txt
     #   -r requirements/quality.txt
@@ -644,7 +644,7 @@ tincan==1.0.0
     # via
     #   -r requirements/quality.txt
     #   edx-event-routing-backends
-tox==4.24.1
+tox==4.24.2
     # via
     #   -r requirements/ci.txt
     #   tox-uv
@@ -670,7 +670,7 @@ urllib3==2.2.3
     #   -c https://raw.githubusercontent.com/edx/edx-lint/master/edx_lint/files/common_constraints.txt
     #   -r requirements/quality.txt
     #   requests
-uv==0.6.3
+uv==0.6.5
     # via
     #   -r requirements/ci.txt
     #   -r requirements/pip.txt
@@ -681,7 +681,7 @@ vine==5.1.0
     #   amqp
     #   celery
     #   kombu
-virtualenv==20.29.2
+virtualenv==20.29.3
     # via
     #   -r requirements/ci.txt
     #   tox
