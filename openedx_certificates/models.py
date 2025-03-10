@@ -20,7 +20,7 @@ from django.utils.translation import gettext_lazy as _
 from django_celery_beat.models import IntervalSchedule, PeriodicTask
 from edx_ace import Message, Recipient, ace
 from model_utils.models import TimeStampedModel
-from opaque_keys.edx.django.models import CourseKeyField
+from opaque_keys.edx.django.models import CourseKeyField, LearningContextKeyField
 
 from openedx_certificates.compat import get_course_name
 from openedx_certificates.exceptions import AssetNotFoundError, CertificateGenerationError
@@ -75,7 +75,10 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
     .. no_pii:
     """
 
-    course_id = CourseKeyField(max_length=255, help_text=_('The ID of the course.'))
+    learning_context_key = LearningContextKeyField(
+        max_length=255,
+        help_text=_('The ID of the course or learning path.'),
+    )
     certificate_type = models.ForeignKey(
         ExternalCertificateType,
         on_delete=models.CASCADE,
@@ -96,10 +99,10 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
     )
 
     class Meta:  # noqa: D106
-        unique_together = (('course_id', 'certificate_type'),)
+        unique_together = (('learning_context_key', 'certificate_type'),)
 
     def __str__(self):  # noqa: D105
-        return f'{self.certificate_type.name} in {self.course_id}'
+        return f'{self.certificate_type.name} in {self.learning_context_key}'
 
     def save(self, *args, **kwargs):
         """Create a new PeriodicTask every time a new ExternalCertificateCourseConfiguration is created."""
@@ -113,7 +116,7 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
             self.periodic_task = PeriodicTask.objects.create(
                 enabled=False,
                 interval=schedule,
-                name=f'{self.certificate_type} in {self.course_id}',
+                name=f'{self.certificate_type} in {self.learning_context_key}',
                 task=task_path,
             )
 
@@ -138,9 +141,9 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
     def generate_certificates(self):
         """This method allows manual certificate generation from the Django admin."""
         user_ids = self.get_eligible_user_ids()
-        log.info("The following users are eligible in %s: %s", self.course_id, user_ids)
+        log.info("The following users are eligible in %s: %s", self.learning_context_key, user_ids)
         filtered_user_ids = self.filter_out_user_ids_with_certificates(user_ids)
-        log.info("The filtered users eligible in %s: %s", self.course_id, filtered_user_ids)
+        log.info("The filtered users eligible in %s: %s", self.learning_context_key, filtered_user_ids)
         for user_id in filtered_user_ids:
             self.generate_certificate_for_user(user_id)
 
@@ -154,7 +157,7 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
                  2. Have such a certificate with an error status.
         """
         users_ids_with_certificates = ExternalCertificate.objects.filter(
-            models.Q(course_id=self.course_id),
+            models.Q(learning_context_key=self.learning_context_key),
             models.Q(certificate_type=self.certificate_type),
             ~(models.Q(status=ExternalCertificate.Status.ERROR)),
         ).values_list('user_id', flat=True)
@@ -174,7 +177,7 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
         func = getattr(module, func_name)
 
         custom_options = {**self.certificate_type.custom_options, **self.custom_options}
-        return func(self.course_id, custom_options)
+        return func(self.learning_context_key, custom_options)
 
     def generate_certificate_for_user(self, user_id: int, celery_task_id: int = 0) -> str | None:
         """
@@ -195,13 +198,13 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
         # Use the name from the profile if it is not empty. Otherwise, use the first and last name.
         # We check if the profile exists because it may not exist in some cases (e.g., when a User is created manually).
         user_full_name = getattr(getattr(user, 'profile', None), 'name', f"{user.first_name} {user.last_name}")
-        course_name = get_course_name(self.course_id)
+        course_name = get_course_name(self.learning_context_key)
         custom_options = {**self.certificate_type.custom_options, **self.custom_options}
 
         try:
             certificate = ExternalCertificate.objects.exclude(status=ExternalCertificate.Status.INVALIDATED).get(
                 user_id=user_id,
-                course_id=self.course_id,
+                learning_context_key=self.learning_context_key,
                 certificate_type=self.certificate_type.name,
             )
             certificate.user_full_name = user_full_name
@@ -213,7 +216,7 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
             certificate = ExternalCertificate.objects.create(
                 user_id=user_id,
                 user_full_name=user_full_name,
-                course_id=self.course_id,
+                learning_context_key=self.learning_context_key,
                 course_name=course_name,
                 certificate_type=self.certificate_type.name,
                 status=ExternalCertificate.Status.GENERATING,
@@ -226,7 +229,7 @@ class ExternalCertificateCourseConfiguration(TimeStampedModel):
             generation_func = getattr(generation_module, generation_func_name)
 
             # Run the functions. We do not validate them here, as they are validated in the model's clean() method.
-            certificate.download_url = generation_func(self.course_id, user, certificate.uuid, custom_options)
+            certificate.download_url = generation_func(self.learning_context_key, user, certificate.uuid, custom_options)
             certificate.status = ExternalCertificate.Status.AVAILABLE
             certificate.save()
         except Exception as exc:
@@ -281,7 +284,10 @@ class ExternalCertificate(TimeStampedModel):
     )
     user_id = models.IntegerField(help_text=_('ID of the user receiving the certificate'))
     user_full_name = models.CharField(max_length=255, help_text=_('User receiving the certificate'))
-    course_id = CourseKeyField(max_length=255, help_text=_('ID of a course for which the certificate was issued'))
+    learning_context_key = LearningContextKeyField(
+        max_length=255,
+        help_text=_('ID of the course or learning path for which the certificate was issued'),
+    )
     course_name = models.CharField(max_length=255, help_text=_('Course name for which the certificate was issued'))
     certificate_type = models.CharField(max_length=255, help_text=_('Type of the certificate'))
     status = models.CharField(
@@ -299,7 +305,7 @@ class ExternalCertificate(TimeStampedModel):
     )
 
     def __str__(self):  # noqa: D105
-        return f"{self.certificate_type} for {self.user_full_name} in {self.course_id}"
+        return f"{self.certificate_type} for {self.user_full_name} in {self.learning_context_key}"
 
     def save(self, *args, **kwargs):
         """Invalidate the certificate if the `invalidation_reason` is set."""
@@ -310,7 +316,7 @@ class ExternalCertificate(TimeStampedModel):
                 certificate := ExternalCertificate.objects.exclude(status=ExternalCertificate.Status.INVALIDATED)
                 .filter(
                     user_id=self.user_id,
-                    course_id=self.course_id,
+                    learning_context_key=self.learning_context_key,
                     certificate_type=self.certificate_type,
                     status=ExternalCertificate.Status.AVAILABLE,
                 )
@@ -325,7 +331,7 @@ class ExternalCertificate(TimeStampedModel):
 
     def send_email(self):
         """Send a certificate link to the student."""
-        course_name = get_course_name(self.course_id)
+        course_name = get_course_name(self.learning_context_key)
         user = get_user_model().objects.get(id=self.user_id)
         msg = Message(
             name="certificate_generated",
@@ -343,7 +349,7 @@ class ExternalCertificate(TimeStampedModel):
     def reissue_certificate(self):
         """Handle the reissuing of the certificate."""
         certificate_config = ExternalCertificateCourseConfiguration.objects.get(
-            course_id=self.course_id,
+            learning_context_key=self.learning_context_key,
             certificate_type__name=self.certificate_type,
         )
 

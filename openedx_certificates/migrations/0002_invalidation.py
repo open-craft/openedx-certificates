@@ -8,7 +8,7 @@ from openedx_certificates.compat import get_course_name
 def fill_course_names(apps, _schema_editor):
     """Fill the course_name field for all existing certificates."""
     for certificate in apps.get_model("openedx_certificates", "ExternalCertificate").objects.all():
-        course_name = get_course_name(certificate.course_id)
+        course_name = get_course_name(certificate.learning_context_key)
         certificate.course_name = course_name
         certificate.save()
 

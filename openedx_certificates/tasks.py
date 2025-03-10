@@ -40,9 +40,9 @@ def generate_certificates_for_course_task(course_config_id: int):
     """
     course_config = ExternalCertificateCourseConfiguration.objects.get(id=course_config_id)
     user_ids = course_config.get_eligible_user_ids()
-    log.info("The following users are eligible in %s: %s", course_config.course_id, user_ids)
+    log.info("The following users are eligible in %s: %s", course_config.learning_context_key, user_ids)
     filtered_user_ids = course_config.filter_out_user_ids_with_certificates(user_ids)
-    log.info("The filtered users eligible in %s: %s", course_config.course_id, filtered_user_ids)
+    log.info("The filtered users eligible in %s: %s", course_config.learning_context_key, filtered_user_ids)
 
     for user_id in filtered_user_ids:
         generate_certificate_for_user_task.delay(course_config_id, user_id)

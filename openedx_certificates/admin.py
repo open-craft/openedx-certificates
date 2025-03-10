@@ -120,7 +120,7 @@ class ExternalCertificateAssetAdmin(admin.ModelAdmin):  # noqa: D101
 class ExternalCertificateCourseConfigurationForm(forms.ModelForm, DocstringOptionsMixin):  # noqa: D101
     class Meta:  # noqa: D106
         model = ExternalCertificateCourseConfiguration
-        fields = ('course_id', 'certificate_type', 'custom_options')
+        fields = ('learning_context_key', 'certificate_type', 'custom_options')
 
     def __init__(self, *args, **kwargs):
         """Initializes the choices for the retrieval and generation function selection fields."""
@@ -165,9 +165,9 @@ class ExternalCertificateCourseConfigurationAdmin(DjangoObjectActions, ReverseMo
             {'fields': ['enabled', 'interval', 'crontab', 'clocked', 'start_time', 'expires', 'one_off']},
         ),
     ]
-    list_display = ('course_id', 'certificate_type', 'enabled', 'interval')
-    search_fields = ('course_id', 'certificate_type__name')
-    list_filter = ('course_id', 'certificate_type')
+    list_display = ('learning_context_key', 'certificate_type', 'enabled', 'interval')
+    search_fields = ('learning_context_key', 'certificate_type__name')
+    list_filter = ('learning_context_key', 'certificate_type')
 
     def get_inline_instances(
         self,
@@ -222,7 +222,7 @@ class ExternalCertificateAdmin(DjangoObjectActions, admin.ModelAdmin):  # noqa: 
     list_display = (
         'user_id',
         'user_full_name',
-        'course_id',
+        'learning_context_key',
         'certificate_type',
         'status',
         'url',
@@ -234,7 +234,7 @@ class ExternalCertificateAdmin(DjangoObjectActions, admin.ModelAdmin):  # noqa: 
         'created',
         'modified',
         'user_full_name',
-        'course_id',
+        'learning_context_key',
         'course_name',
         'certificate_type',
         'status',
@@ -242,8 +242,8 @@ class ExternalCertificateAdmin(DjangoObjectActions, admin.ModelAdmin):  # noqa: 
         'legacy_id',
         'generation_task_id',
     )
-    search_fields = ('course_id', 'uuid')
-    list_filter = ('course_id', 'certificate_type', 'status')
+    search_fields = ('learning_context_key', 'uuid')
+    list_filter = ('learning_context_key', 'certificate_type', 'status')
     change_actions = ('reissue_certificate',)
 
     def save_model(self, request, obj, form, change):

@@ -163,7 +163,7 @@ class TestExternalCertificateCourseConfiguration:
         self.course_config.save()
 
         cert_data = {
-            "course_id": self.course_config.course_id,
+            "course_id": self.course_config.learning_context_key,
             "certificate_type": self.certificate_type.name,
         }
 
@@ -211,7 +211,7 @@ class TestExternalCertificateCourseConfiguration:
         self.course_config.generate_certificate_for_user(user.id, task_id)
         assert ExternalCertificate.objects.filter(
             user_id=user.id,
-            course_id=self.course_config.course_id,
+            course_id=self.course_config.learning_context_key,
             certificate_type=self.certificate_type,
             user_full_name=f"{user.first_name} {user.last_name}",
             status=ExternalCertificate.Status.AVAILABLE,
@@ -226,7 +226,7 @@ class TestExternalCertificateCourseConfiguration:
         user = UserFactory.create(is_active=False)
 
         self.course_config.generate_certificate_for_user(user.id, task_id)
-        assert ExternalCertificate.objects.filter(course_id=self.course_config.course_id).count() == 2
+        assert ExternalCertificate.objects.filter(course_id=self.course_config.learning_context_key).count() == 2
         mock_send_email.assert_called_once()
 
         user = UserFactory.create()
@@ -234,7 +234,7 @@ class TestExternalCertificateCourseConfiguration:
         user.save()
 
         self.course_config.generate_certificate_for_user(user.id, task_id)
-        assert ExternalCertificate.objects.filter(course_id=self.course_config.course_id).count() == 3
+        assert ExternalCertificate.objects.filter(course_id=self.course_config.learning_context_key).count() == 3
         mock_send_email.assert_called_once()
 
     @pytest.mark.django_db
@@ -245,7 +245,7 @@ class TestExternalCertificateCourseConfiguration:
 
         ExternalCertificate.objects.create(
             user_id=user.id,
-            course_id=self.course_config.course_id,
+            course_id=self.course_config.learning_context_key,
             certificate_type=self.certificate_type,
             user_full_name="Random Name",
             status=ExternalCertificate.Status.ERROR,
@@ -256,7 +256,7 @@ class TestExternalCertificateCourseConfiguration:
         self.course_config.generate_certificate_for_user(user.id)
         assert ExternalCertificate.objects.filter(
             user_id=user.id,
-            course_id=self.course_config.course_id,
+            course_id=self.course_config.learning_context_key,
             certificate_type=self.certificate_type,
             user_full_name=f"{user.first_name} {user.last_name}",
             status=ExternalCertificate.Status.AVAILABLE,
@@ -285,7 +285,7 @@ class TestExternalCertificateCourseConfiguration:
         assert 'Failed to generate the' in str(exc.value)
         assert ExternalCertificate.objects.filter(
             user_id=user.id,
-            course_id=self.course_config.course_id,
+            course_id=self.course_config.learning_context_key,
             certificate_type=self.certificate_type,
             user_full_name=f"{user.first_name} {user.last_name}",
             status=ExternalCertificate.Status.ERROR,
