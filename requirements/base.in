@@ -6,6 +6,7 @@ django-model-utils      # Provides TimeStampedModel abstract base class
 edx-opaque-keys         # Create and introspect Course and XBlock identities
 celery                  # Distributed task queue
 django-celery-beat      # Periodic task scheduler
+django-object-actions   # Provides actions on objects in the admin interface
 django_reverse_admin    # Provides reverse inlines in the admin interface
 djangorestframework     # RESTful API framework
 django-object-actions   # Provides actions on objects in the admin interface

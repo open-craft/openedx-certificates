@@ -1,0 +1,75 @@
+{% extends "main_django.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block bodyextra %}
+    <link rel="stylesheet" type="text/css" href="{% static 'openedx_certificates/styles.css' %}">
+    <div class="certificate-validation-container">
+        <h1>{% trans "Certificate validation page" %}</h1>
+        <form id="certificateValidationForm" method="post">
+            {% csrf_token %}
+            <div class="form-field">
+                <label for="certificateID">{% trans 'Certificate ID' %}</label>
+                <input type="text" id="certificateID" class="input-block" name="certificateID" required>
+                <div id="formError" class="form-error"></div>
+            </div>
+            <button type="submit" class="btn-primary">
+                {% trans 'Validate' %}
+            </button>
+        </form>
+        
+        <div id="validationResults"></div>
+    </div>
+
+    <script>
+    document.getElementById('certificateValidationForm').onsubmit = async function(event) {
+        event.preventDefault(); // Prevent the default form submission
+        let formError = document.getElementById('formError');
+        let validationResults = document.getElementById('validationResults');
+    
+        let certificateId = document.getElementById('certificateID').value;
+        var url = '/openedx_certificates/api/v1/metadata/' + encodeURIComponent(certificateId);
+        
+        // Hide previous error messages.
+        formError.style.display = 'none';
+    
+        await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                const table = document.createElement('table');
+                Object.entries(data).forEach(([key, value]) => {
+                    const row = table.insertRow();
+                    const cellKey = row.insertCell();
+                    const cellValue = row.insertCell();
+                    cellKey.textContent = key;
+                    cellValue.textContent = value;
+                });
+                validationResults.textContent = '';
+                validationResults.appendChild(table);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                validationResults.textContent = '';
+                formError.innerHTML = "An error occurred during validation";
+                formError.style.display = 'block';
+            });
+    }
+    
+    // Fill the certificate ID field with URL 'certificate' query param.
+    $(document).ready(function(){
+        let urlParams = new URLSearchParams(window.location.search);
+        const uuid = urlParams.get('certificate');
+    
+        // If a UUID was found, pre-fill the form input with it.
+        if (uuid) {
+            $('#certificateID').val(uuid);
+        }
+    });
+    </script>
+{% endblock %}

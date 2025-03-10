@@ -7,7 +7,7 @@ import inspect
 from typing import TYPE_CHECKING
 
 from django import forms
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.core.exceptions import ValidationError
 from django.utils.html import format_html
 from django_object_actions import DjangoObjectActions, action
@@ -218,7 +218,7 @@ class ExternalCertificateCourseConfigurationAdmin(DjangoObjectActions, ReverseMo
 
 
 @admin.register(ExternalCertificate)
-class ExternalCertificateAdmin(admin.ModelAdmin):  # noqa: D101
+class ExternalCertificateAdmin(DjangoObjectActions, admin.ModelAdmin):  # noqa: D101
     list_display = (
         'user_id',
         'user_full_name',
@@ -235,12 +235,24 @@ class ExternalCertificateAdmin(admin.ModelAdmin):  # noqa: D101
         'modified',
         'user_full_name',
         'course_id',
+        'course_name',
         'certificate_type',
         'status',
         'url',
         'legacy_id',
         'generation_task_id',
     )
+    search_fields = ('course_id', 'uuid')
+    list_filter = ('course_id', 'certificate_type', 'status')
+    change_actions = ('reissue_certificate',)
+
+    def save_model(self, request, obj, form, change):
+        try:
+            obj.save()
+        except ValidationError as e:
+            self.message_user(request, e.message, level=messages.ERROR)
+            # Optionally, redirect to the change form with the error message
+            return
 
     def get_form(self, request: HttpRequest, obj: ExternalCertificate | None = None, **kwargs) -> forms.ModelForm:
         """Hide the download_url field."""
@@ -254,3 +266,11 @@ class ExternalCertificateAdmin(admin.ModelAdmin):  # noqa: D101
         if obj.download_url:
             return format_html("<a href='{url}'>{url}</a>", url=obj.download_url)
         return "-"
+
+    @action(label="Reissue certificate", description="Reissue the certificate for the user.")
+    def reissue_certificate(self, request: HttpRequest, obj: ExternalCertificate):
+        """Reissue the certificate for the user."""
+        try:
+            obj.reissue_certificate()
+        except ExternalCertificateCourseConfiguration.DoesNotExist:
+            messages.error(request, "The course configuration does not exist.")
