@@ -20,7 +20,7 @@ asgiref==3.8.1
     # via
     #   -r requirements/base.txt
     #   django
-attrs==25.1.0
+attrs==25.3.0
     # via
     #   -r requirements/base.txt
     #   edx-ace
@@ -87,7 +87,7 @@ code-annotations==2.2.0
     #   -r requirements/base.txt
     #   -r requirements/test.in
     #   edx-toggles
-coverage==7.6.12
+coverage==7.7.0
     # via
     #   django-coverage-plugin
     #   pytest-cov
@@ -256,7 +256,7 @@ fasteners==0.19
     # via
     #   -r requirements/base.txt
     #   edx-event-routing-backends
-firebase-admin==6.6.0
+firebase-admin==6.7.0
     # via
     #   -r requirements/base.txt
     #   edx-ace
@@ -264,7 +264,7 @@ fs==2.4.16
     # via
     #   -r requirements/base.txt
     #   xblock
-google-api-core==2.24.1
+google-api-core==2.24.2
     # via
     #   -r requirements/base.txt
     #   firebase-admin
@@ -272,7 +272,7 @@ google-api-core==2.24.1
     #   google-cloud-core
     #   google-cloud-firestore
     #   google-cloud-storage
-google-api-python-client==2.163.0
+google-api-python-client==2.164.0
     # via
     #   -r requirements/base.txt
     #   firebase-admin
@@ -289,7 +289,7 @@ google-auth-httplib2==0.2.0
     # via
     #   -r requirements/base.txt
     #   google-api-python-client
-google-cloud-core==2.4.2
+google-cloud-core==2.4.3
     # via
     #   -r requirements/base.txt
     #   google-cloud-firestore
@@ -316,12 +316,12 @@ googleapis-common-protos==1.69.1
     #   -r requirements/base.txt
     #   google-api-core
     #   grpcio-status
-grpcio==1.70.0
+grpcio==1.71.0
     # via
     #   -r requirements/base.txt
     #   google-api-core
     #   grpcio-status
-grpcio-status==1.70.0
+grpcio-status==1.71.0
     # via
     #   -r requirements/base.txt
     #   google-api-core
@@ -349,7 +349,7 @@ jsonfield==3.1.0
     #   -r requirements/base.txt
     #   edx-celeryutils
     #   edx-event-routing-backends
-kombu==5.4.2
+kombu==5.5.0
     # via
     #   -r requirements/base.txt
     #   celery
@@ -401,7 +401,7 @@ prompt-toolkit==3.0.50
     # via
     #   -r requirements/base.txt
     #   click-repl
-proto-plus==1.26.0
+proto-plus==1.26.1
     # via
     #   -r requirements/base.txt
     #   google-api-core
@@ -450,7 +450,7 @@ pyparsing==3.2.1
     # via
     #   -r requirements/base.txt
     #   httplib2
-pypdf==5.3.1
+pypdf==5.4.0
     # via -r requirements/base.txt
 pytest==8.3.5
     # via
